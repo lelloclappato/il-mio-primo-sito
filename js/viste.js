@@ -7,6 +7,7 @@ import { data, getVal, getJournal, migrationNote } from './dati.js';
 import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, percentualeComplessiva, piuCostante, livelloGiorno, umoreEAbitudini, daysLabel } from './calcoli.js';
 import { ui } from './stato.js';
 import { icon } from './icone.js';
+import { hasPrimaImport } from './backup.js';
 
 const TABS = [['oggi', 'check', 'Oggi'], ['stat', 'chart', 'Statistiche'], ['hab', 'settings', 'Abitudini']];
 
@@ -280,7 +281,8 @@ function viewHabits() {
     <div class="muted">I dati restano solo su questo dispositivo. Fai un backup ogni tanto.</div>
     <div class="muted" style="margin-top:4px">Ultimo backup: ${data.lastBackup ? esc(data.lastBackup) : 'mai'}</div>
     <button class="btn block" data-act="export">${icon('download', 20)}Esporta backup (JSON)</button>
-    <button class="btn sec block" data-act="import">${icon('upload', 20)}Importa backup</button></div>
+    <button class="btn sec block" data-act="import">${icon('upload', 20)}Importa backup</button>
+    ${hasPrimaImport() ? `<button class="btn sec block" data-act="undoImport">Annulla l’ultima importazione</button>` : ''}</div>
     <p class="muted small" style="text-align:center">Abitudini v${APP_VERSION}</p>`;
   return html;
 }

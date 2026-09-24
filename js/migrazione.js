@@ -29,8 +29,13 @@ export function upgrade(d) {
   if (v < 2) { d.journal = {}; d.settings = defaultSettings(); }
   // campi mancanti o rovinati: si rimettono i valori predefiniti
   if (!d.journal || typeof d.journal !== 'object' || Array.isArray(d.journal)) d.journal = {};
-  if (!d.settings || typeof d.settings !== 'object') d.settings = defaultSettings();
-  d.settings = { ...defaultSettings(), ...d.settings, reminder: { ...defaultSettings().reminder, ...(d.settings.reminder || {}) } };
+  // impostazioni: si tengono solo valori sensati, il resto torna al predefinito
+  const s = d.settings && typeof d.settings === 'object' && !Array.isArray(d.settings) ? d.settings : {};
+  const r = s.reminder && typeof s.reminder === 'object' ? s.reminder : {};
+  d.settings = { ...s, reminder: {
+    on: r.on === true,
+    time: typeof r.time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(r.time) ? r.time : defaultSettings().reminder.time
+  } };
   if (d.lastBackup === undefined) d.lastBackup = null;
   d.version = CURRENT_VERSION;
   return d;

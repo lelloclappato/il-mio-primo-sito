@@ -9,7 +9,7 @@ import { isDone } from './calcoli.js';
 import { ui } from './stato.js';
 import { render, annuncia, UMORI } from './viste.js';
 import { openForm, renderForm, syncForm, closeForm } from './modulo.js';
-import { exportBackup, askImport, setupImport } from './backup.js';
+import { exportBackup, askImport, setupImport, annullaImport } from './backup.js';
 
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
@@ -87,6 +87,7 @@ document.addEventListener('click', e => {
     // --- backup ---
     case 'export': exportBackup(); break;
     case 'import': askImport(); break;
+    case 'undoImport': annullaImport(); break;
   }
 });
 

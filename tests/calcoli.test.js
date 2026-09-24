@@ -7,6 +7,7 @@ import {
   piuCostante, livelloGiorno, umoreEAbitudini, isDone
 } from '../js/calcoli.js';
 import { upgrade } from '../js/migrazione.js';
+import { controllaBackup } from '../js/validazione.js';
 
 const OGGI = new Date(2026, 8, 24); // i mesi partono da 0: 8 = settembre. È un giovedì.
 const k = n => keyOf(addDays(OGGI, -n)); // k(0) = oggi, k(1) = ieri, ...
@@ -124,6 +125,54 @@ test('migrazione v1 → v2: aggiunge diario e impostazioni, tiene i dati', () =>
 test('migrazione: dati v2 con impostazioni incomplete vengono completati', () => {
   const r = upgrade({ version: 2, habits: [], logs: {}, journal: {}, settings: { reminder: { on: true } } });
   uguale(r.settings.reminder, { on: true, time: '20:30' });
+});
+
+// ---------- controllo dei backup ----------
+const buono = () => ({ version: 2, lastBackup: k(3), habits: [ogniGiorno('a'), { ...ogniGiorno('b'), type: 'qty', target: 2, unit: 'L', step: 0.5 }],
+  logs: { [k(1)]: { a: 1, b: 1.5 }, [k(2)]: { a: 1 } }, journal: { [k(1)]: { mood: 4, note: 'ok' } }, settings: { reminder: { on: true, time: '21:00' } } });
+test('backup valido: accettato con riepilogo', () => {
+  const c = controllaBackup(buono());
+  uguale([c.ok, c.errori, c.avvisi, c.riepilogo], [true, [], [], { abitudini: 2, giorni: 2, dal: k(2), al: k(1) }]);
+  uguale([c.dati.journal[k(1)], c.dati.settings.reminder], [{ mood: 4, note: 'ok' }, { on: true, time: '21:00' }]);
+});
+test('backup: file che non è un backup', () => {
+  uguale(controllaBackup({ ciao: 1 }).ok, false);
+  uguale(controllaBackup('testo').ok, false);
+  uguale(controllaBackup(null).ok, false);
+});
+test('backup: abitudine senza nome → errore con la posizione', () => {
+  const d = buono(); d.habits[1].name = '  ';
+  uguale(controllaBackup(d).errori, ['Abitudine n. 2: manca il nome.']);
+});
+test('backup: obiettivo non valido, giorni sbagliati, id ripetuto', () => {
+  const d = buono(); d.habits[1].target = -1;
+  uguale(controllaBackup(d).errori[0].includes('obiettivo'), true);
+  const e = buono(); e.habits[0].days = [1, 9];
+  uguale(controllaBackup(e).errori[0].includes('giorni della settimana'), true);
+  const f = buono(); f.habits[1].id = 'a';
+  uguale(controllaBackup(f).errori[0].includes('ripetuto'), true);
+});
+test('backup: versione più nuova dell’app → errore', () => {
+  const d = buono(); d.version = 99;
+  uguale(controllaBackup(d).ok, false);
+});
+test('backup: valori strani vengono ignorati con un avviso', () => {
+  const d = buono();
+  d.logs['2026-13-45'] = { a: 1 }; d.logs[k(4)] = { a: 'tanto', zz: 1 }; d.journal[k(2)] = { mood: 9 };
+  const c = controllaBackup(d);
+  uguale([c.ok, c.avvisi.length, c.dati.logs[k(4)], c.dati.journal[k(2)]], [true, 3, undefined, undefined]);
+});
+test('backup: versione 1 (senza diario) viene convertita', () => {
+  const d = buono(); d.version = 1; delete d.journal; delete d.settings;
+  const c = controllaBackup(d);
+  uguale([c.ok, c.dati.version, c.dati.journal, c.dati.settings.reminder.on], [true, 2, {}, false]);
+});
+test('backup: formato della prima versione (lista)', () => {
+  const c = controllaBackup([{ id: 'x', name: 'Yoga', log: { [k(1)]: true } }]);
+  uguale([c.ok, c.dati.habits[0].name, c.riepilogo.giorni, c.avvisi.length], [true, 'Yoga', 1, 1]);
+});
+test('impostazioni: un orario non valido torna al predefinito', () => {
+  uguale(upgrade({ version: 2, habits: [], logs: {}, settings: { reminder: { on: 'sì', time: '25:99' } } }).settings.reminder, { on: false, time: '20:30' });
 });
 
 esegui();
