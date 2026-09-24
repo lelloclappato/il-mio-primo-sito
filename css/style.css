@@ -249,3 +249,23 @@ input[type=text], input[type=number], select { width: 100%; min-height: 48px; fo
 @media (hover: hover) { .mood:not(.on):hover { border-color: var(--line); color: var(--text); } }
 textarea { width: 100%; font: inherit; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); resize: vertical; min-height: 80px; }
 textarea::placeholder, input::placeholder { color: var(--muted); }
+
+/* ---------- Statistiche ---------- */
+.stats.four { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.stats.four b { font-size: 22px; }
+.top { display: flex; align-items: flex-start; gap: 8px; margin: 14px 0 0; font-size: 14px; }
+.top .ico { color: var(--gold); margin-top: 1px; }
+
+/* griglia delle settimane: livelli di colore mescolando il verde "completato" con il binario vuoto */
+.cal { display: grid; grid-template-rows: auto repeat(7, auto); grid-auto-flow: column; gap: 3px; margin-top: 12px; }
+.cal-l { font-size: 12px; line-height: 1; color: var(--muted); display: flex; align-items: center; padding-right: 4px; }
+.cal-m { white-space: nowrap; height: 16px; padding: 0; } /* il nome del mese può "sbordare" nelle colonne accanto */
+.cal i, .legend i { aspect-ratio: 1; border-radius: 3px; }
+i.l0 { background: var(--track); }
+i.l1 { background: color-mix(in srgb, var(--done) 35%, var(--track)); }
+i.l2 { background: color-mix(in srgb, var(--done) 65%, var(--track)); }
+i.l3 { background: var(--done); }
+i.none { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+i.fut { visibility: hidden; }
+.cal i.today { outline: 2px solid var(--text); outline-offset: 1px; }
+.legend { align-items: center; }

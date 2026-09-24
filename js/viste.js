@@ -4,7 +4,7 @@
 // che dice cosa fare al tocco: lo legge app.js.
 import { keyOf, todayKey, dateOf, addDays, weekStart, fmt, esc, DAYS_FULL, MONTHS, APP_VERSION } from './utili.js';
 import { data, getVal, getJournal, migrationNote } from './dati.js';
-import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, daysLabel } from './calcoli.js';
+import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, percentualeComplessiva, piuCostante, livelloGiorno, umoreEAbitudini, daysLabel } from './calcoli.js';
 import { ui } from './stato.js';
 import { icon } from './icone.js';
 
@@ -162,9 +162,28 @@ function cardOggi(h) {
 function viewStat() {
   if (!data.habits.length) return `<h1>Statistiche</h1>` + empty('chart', 'Ancora niente da mostrare', 'Le statistiche compaiono quando crei le tue abitudini.');
   const now = new Date(), ws = weekStart(now), ms = new Date(now.getFullYear(), now.getMonth(), 1);
-  let html = `<h1>Statistiche</h1><p class="muted">Contano solo i giorni in cui l’abitudine era prevista.</p>`;
+  const serie = serieComplessiva(data, now);
+  const w = percentualeComplessiva(data, ws, now, now), m = percentualeComplessiva(data, ms, now, now);
+  const top = piuCostante(data, now);
+  const pct = v => v === null ? '–' : v + '%';
+
+  let html = `<h1>Statistiche</h1><p class="muted">Contano solo i giorni in cui le abitudini erano previste. Oggi conta solo se è già fatto.</p>
+  <section class="card" aria-labelledby="st-gen"><h2 id="st-gen" style="margin:0">In generale</h2>
+    <div class="stats four">
+      <div><b>${serie.attuale}</b><span>serie attuale</span></div>
+      <div><b>${serie.migliore}</b><span>serie migliore</span></div>
+      <div><b>${pct(w)}</b><span>questa settimana</span></div>
+      <div><b>${pct(m)}</b><span>questo mese</span></div>
+    </div>
+    <p class="top">${top
+      ? `${icon('flame', 18)}<span>Abitudine più costante: <strong>${esc(top.h.name)}</strong>, ${top.pct}% negli ultimi 30 giorni</span>`
+      : `<span class="muted">L’abitudine più costante comparirà dopo qualche giorno di dati.</span>`}</p>
+  </section>`;
+  html += calendario(now) + umoreCard(now);
+
+  html += `<h2>Per abitudine</h2>`;
   for (const h of data.habits) {
-    const w = percentuale(data, h, ws, now), m = percentuale(data, h, ms, now);
+    const s = serieAbitudine(data, h, now), hw = percentuale(data, h, ws, now, now), hm = percentuale(data, h, ms, now, now);
     // griglia degli ultimi 28 giorni, dal più vecchio a oggi
     let cells = '', nDone = 0, nMiss = 0;
     for (let i = 27; i >= 0; i--) {
@@ -176,16 +195,76 @@ function viewStat() {
     }
     html += `<div class="card">
       <div class="title">${esc(h.name)}</div><div class="muted">${daysLabel(h)}</div>
-      <div class="stats">
-        <div><b>${serieAbitudine(data, h).attuale}</b><span>serie attuale</span></div>
-        <div><b>${w === null ? '–' : w + '%'}</b><span>questa settimana</span></div>
-        <div><b>${m === null ? '–' : m + '%'}</b><span>questo mese</span></div>
+      <div class="stats four">
+        <div><b>${s.attuale}</b><span>serie</span></div>
+        <div><b>${s.migliore}</b><span>record</span></div>
+        <div><b>${pct(hw)}</b><span>settimana</span></div>
+        <div><b>${pct(hm)}</b><span>mese</span></div>
       </div>
       <div class="heat" role="img" aria-label="Ultimi 28 giorni: ${nDone} fatti, ${nMiss} saltati">${cells}</div>
       <div class="legend" aria-hidden="true"><span><i class="done"></i>fatta</span><span><i class="miss"></i>saltata</span><span><i></i>non prevista</span></div>
     </div>`;
   }
   return html;
+}
+
+// Griglia delle ultime settimane, stile "contributi di GitHub":
+// ogni colonna è una settimana (da lunedì a domenica), ogni quadratino un giorno.
+// Il colore dice quante abitudini previste sono state fatte: più è pieno, più ne hai fatte.
+const SETTIMANE = 20;
+const MESI_BREVI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+function calendario(now) {
+  const start = addDays(weekStart(now), -7 * (SETTIMANE - 1)), oggiK = keyOf(now);
+  // La griglia si riempie per colonne: prima colonna = nomi dei giorni, poi una colonna per settimana.
+  // Ogni colonna ha 8 caselle: in alto il mese (se inizia lì), sotto i 7 giorni da lunedì a domenica.
+  let cells = ['', 'lun', '', 'mer', '', 'ven', '', 'dom'].map(t => `<span class="cal-l">${t}</span>`).join('');
+  let completi = 0, conPrevisti = 0, meseVisto = -1;
+  for (let w = 0; w < SETTIMANE; w++) {
+    const lun = addDays(start, 7 * w);
+    // etichetta del mese sopra la prima settimana di ogni mese (non nelle ultime 2 colonne: non c'è spazio)
+    const nuovoMese = lun.getMonth() !== meseVisto && w <= SETTIMANE - 3;
+    cells += `<span class="cal-l cal-m">${nuovoMese ? MESI_BREVI[lun.getMonth()] : ''}</span>`;
+    meseVisto = lun.getMonth();
+    for (let r = 0; r < 7; r++) {
+      const g = addDays(lun, r), k = keyOf(g);
+      if (k > oggiK) { cells += '<i class="fut"></i>'; continue; } // giorni futuri: spazio vuoto
+      const liv = livelloGiorno(data, g);
+      let c = 'none', desc = 'niente previsto';
+      if (liv !== null) {
+        conPrevisti++; if (liv >= 1) completi++;
+        c = liv >= 1 ? 'l3' : liv >= 0.5 ? 'l2' : liv > 0 ? 'l1' : 'l0';
+        desc = Math.round(liv * 100) + '% fatto';
+      }
+      cells += `<i class="${c}${k === oggiK ? ' today' : ''}" title="${g.getDate()} ${MONTHS[g.getMonth()]}: ${desc}"></i>`;
+    }
+  }
+  return `<section class="card" aria-labelledby="st-cal"><h2 id="st-cal" style="margin:0">Ultime ${SETTIMANE} settimane</h2>
+    <div class="cal" role="img" style="grid-template-columns:auto repeat(${SETTIMANE}, minmax(0, 1fr))"
+      aria-label="Ultime ${SETTIMANE} settimane: ${completi} giorni completi su ${conPrevisti} con abitudini previste">${cells}</div>
+    <div class="legend" aria-hidden="true">meno <i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i> più
+      <span style="margin-left:auto"><i class="none"></i>niente previsto</span></div>
+  </section>`;
+}
+
+// Umore e abitudini: compare quando ci sono abbastanza giorni con l'umore segnato.
+function umoreCard(now) {
+  const r = umoreEAbitudini(data, now);
+  const f = v => v === null ? '–' : fmt(Math.round(v * 10) / 10);
+  let body;
+  if (r.pieni.n < 3 || r.altri.n < 3) {
+    body = `<p class="muted" style="margin:6px 0 0">Segna l’umore in “Oggi” per qualche giorno (servono almeno 3 giorni completi e 3 no):
+      qui vedrai se va di pari passo con le tue abitudini.</p>`;
+  } else {
+    const best = r.abitudini[0];
+    body = `<div class="stats">
+        <div><b>${f(r.pieni.media)}</b><span>umore nei giorni completi</span></div>
+        <div><b>${f(r.altri.media)}</b><span>negli altri giorni</span></div>
+        <div><b>${r.giorniConUmore}</b><span>giorni con l’umore</span></div>
+      </div>
+      ${best && best.diff > 0.2 ? `<p class="top">${icon('mood4', 18)}<span>Nei giorni in cui fai <strong>${esc(best.h.name)}</strong> l’umore è più alto di ${f(best.diff)} punti.</span></p>` : ''}
+      <p class="muted small" style="margin:8px 0 0">Umore da 1 (pessima) a 5 (ottima), ultimi 90 giorni. È un confronto, non una prova di causa ed effetto.</p>`;
+  }
+  return `<section class="card" aria-labelledby="st-umore"><h2 id="st-umore" style="margin:0">Umore e abitudini</h2>${body}</section>`;
 }
 
 // ---------- Abitudini ----------
