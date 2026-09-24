@@ -9,7 +9,7 @@ App per tracciare le abitudini di ogni giorno, installabile sul telefono (PWA). 
 - Serie di giorni consecutivi, percentuali della settimana e del mese, storico degli ultimi 28 giorni
 - Si possono segnare anche i giorni passati
 - Backup ed esportazione in JSON, con promemoria dopo 30 giorni
-- Dati solo nel browser (`localStorage`): nessun server, nessun account
+- Dati solo nel browser (`localStorage`, chiave `abitudini-app-v1`): nessun server, nessun account. I dati delle versioni precedenti (`abitudini.v1`, `habits-tracker-v1`) vengono spostati automaticamente e restano come copia di sicurezza
 
 ## Struttura
 

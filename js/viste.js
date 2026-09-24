@@ -3,7 +3,7 @@
 // render() lo inserisce nella pagina. I pulsanti hanno un attributo data-act
 // che dice cosa fare al tocco: lo legge app.js.
 import { keyOf, todayKey, dateOf, addDays, weekStart, fmt, esc, DAYS_FULL, MONTHS, APP_VERSION } from './utili.js';
-import { data, getVal } from './dati.js';
+import { data, getVal, migrationNote } from './dati.js';
 import { scheduled, isDone, streak, rate, daysLabel } from './calcoli.js';
 import { ui } from './stato.js';
 
@@ -23,6 +23,12 @@ function backupBanner() {
   return `<div class="banner">Non fai un backup ${last ? 'da ' + days + ' giorni' : 'da sempre'}. I dati sono solo su questo telefono. <a href="#" data-act="export" style="color:var(--accent);font-weight:600">Esporta ora</a></div>`;
 }
 
+// avviso dopo che i dati sono stati spostati da una versione precedente dell'app
+function migrationBanner() {
+  if (!migrationNote) return '';
+  return `<div class="banner" role="status">${esc(migrationNote)} <a href="#" data-act="dismissNote" style="color:var(--accent);font-weight:600">Ok</a></div>`;
+}
+
 // ---------- Oggi ----------
 function viewOggi() {
   const d = dateOf(ui.viewKey), isToday = ui.viewKey === todayKey();
@@ -37,7 +43,7 @@ function viewOggi() {
     <button class="ibtn" data-act="day" data-n="1" aria-label="Giorno dopo" ${isToday ? 'disabled style="opacity:.35"' : ''}>›</button>
   </div>`;
   if (!isToday) html += `<button class="btn sec block" data-act="goToday" style="margin:0 0 6px">Torna a oggi</button>`;
-  html += backupBanner();
+  html += migrationBanner() + backupBanner();
   if (list.length) html += `<p class="muted" style="margin:6px 0">${doneN} di ${list.length} completate</p>`;
   if (!data.habits.length) html += `<div class="empty">Nessuna abitudine. Creane una dalla scheda “Abitudini”.</div>`;
   else if (!list.length) html += `<div class="empty">Nessuna abitudine prevista per questo giorno.</div>`;

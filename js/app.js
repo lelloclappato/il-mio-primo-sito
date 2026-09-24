@@ -4,7 +4,7 @@
 // ("delega degli eventi"): quando tocchi qualcosa, cerca l'elemento più vicino con data-act
 // e in base al suo valore decide cosa fare. Così funziona anche con l'HTML ridisegnato da render().
 import { todayKey, keyOf, dateOf, addDays, fmt, uid } from './utili.js';
-import { data, save, getVal, setVal } from './dati.js';
+import { data, save, getVal, setVal, clearMigrationNote } from './dati.js';
 import { ui } from './stato.js';
 import { render } from './viste.js';
 import { openForm, renderForm, syncForm, closeForm } from './modulo.js';
@@ -27,6 +27,7 @@ document.addEventListener('click', e => {
       break;
     }
     case 'goToday': ui.viewKey = todayKey(); render(); break;
+    case 'dismissNote': clearMigrationNote(); render(); break;
     // --- segnare le abitudini ---
     case 'toggle': setVal(id, ui.viewKey, getVal(id, ui.viewKey) ? 0 : 1); render(); break;
     case 'inc': setVal(id, ui.viewKey, getVal(id, ui.viewKey) + h.step); render(); break;
