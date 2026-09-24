@@ -4,7 +4,7 @@ import { test, uguale, esegui } from './mini-test.js';
 import { keyOf, addDays } from '../js/utili.js';
 import {
   serieDaStati, serieAbitudine, serieComplessiva, percentuale, percentualeComplessiva,
-  piuCostante, livelloGiorno, umoreEAbitudini, isDone
+  piuCostante, livelloGiorno, umoreEAbitudini, isDone, necessarie
 } from '../js/calcoli.js';
 import { upgrade } from '../js/migrazione.js';
 import { controllaBackup } from '../js/validazione.js';
@@ -77,6 +77,18 @@ test('complessiva: un giorno senza abitudini previste non interrompe', () => {
   const a = { ...ogniGiorno('a'), days: [1, 3, 5] }; // oggi giovedì: niente previsto
   uguale(serieComplessiva(dati([a], { a: [1, 3] }), OGGI).attuale, 2);
 });
+test('soglia 80%: quante ne servono (arrotondando)', () => {
+  uguale([1, 2, 3, 4, 5, 10].map(n => necessarie(n, 0.8)), [1, 2, 2, 3, 4, 8]);
+  uguale([1, 2, 3].map(n => necessarie(n, 1)), [1, 2, 3]);
+  uguale(necessarie(0, 0.8), 0);
+});
+test('complessiva con soglia 80%: 2 su 3 bastano', () => {
+  const a = ogniGiorno('a'), b = ogniGiorno('b'), c = ogniGiorno('c');
+  const d = dati([a, b, c], { a: [1, 2, 3], b: [1, 2, 3], c: [3] });
+  uguale(serieComplessiva(d, OGGI).attuale, 0, 'con il 100% la serie è 0');
+  d.settings.soglia = 0.8;
+  uguale(serieComplessiva(d, OGGI).attuale, 3, 'con l’80% la serie è 3');
+});
 test('complessiva: nessuna abitudine → 0', () => uguale(serieComplessiva(dati([]), OGGI), { attuale: 0, migliore: 0 }));
 
 // ---------- percentuali ----------
@@ -125,6 +137,9 @@ test('migrazione v1 → v2: aggiunge diario e impostazioni, tiene i dati', () =>
 test('migrazione: dati v2 con impostazioni incomplete vengono completati', () => {
   const r = upgrade({ version: 2, habits: [], logs: {}, journal: {}, settings: { reminder: { on: true } } });
   uguale(r.settings.reminder, { on: true, time: '20:30' });
+  uguale(r.settings.soglia, 1);
+  uguale(upgrade({ version: 2, habits: [], logs: {}, settings: { soglia: 0.8 } }).settings.soglia, 0.8);
+  uguale(upgrade({ version: 2, habits: [], logs: {}, settings: { soglia: 0.5 } }).settings.soglia, 1, 'valori diversi da 1 e 0.8 non sono ammessi');
 });
 
 // ---------- controllo dei backup ----------

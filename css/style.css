@@ -285,3 +285,16 @@ input:disabled { opacity: .55; }
 details.info { margin-top: 10px; font-size: 14px; color: var(--muted); }
 details.info summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--accent); font-weight: 600; }
 details.info p { margin: 0 0 8px; }
+
+/* ---------- Serie: quante mancano, tacca dell'80%, frase ---------- */
+.hero-manca { margin: 12px 0 0; font-size: 15px; }
+.hero-manca strong { font-size: 17px; }
+.bar { position: relative; }
+.bar .tacca { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: var(--gold); border-radius: 2px; }
+.hero-frase { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 15px; font-weight: 500; color: var(--accent); }
+
+/* ---------- Citazione del giorno ---------- */
+.citazione { margin: 10px 0; padding: 14px 16px; background: var(--gold-soft); border-color: transparent; box-shadow: none; }
+.citazione blockquote { margin: 0; font: 600 17px/1.4 var(--font-display); color: var(--text); }
+.citazione figcaption { margin-top: 6px; font-size: 14px; color: var(--gold-text); font-weight: 600; }
+.citazione cite { font-style: normal; font-weight: 500; }

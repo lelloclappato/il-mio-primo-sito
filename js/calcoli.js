@@ -6,8 +6,16 @@
 import { keyOf, addDays, dateOf, DAYS, DAY_ORDER } from './utili.js';
 
 // Quota di abitudini previste da completare perché un giorno conti nella serie complessiva.
-// 1 = tutte. Per esempio 0.8 = almeno l'80%.
-export const SOGLIA_GIORNO_COMPLETO = 1;
+// Si sceglie nella scheda Abitudini ed è salvata in d.settings.soglia: 1 = tutte, 0.8 = circa l'80%.
+export const SOGLIE = [1, 0.8];
+export function soglia(d) { return d.settings && SOGLIE.includes(d.settings.soglia) ? d.settings.soglia : 1; }
+
+// Quante abitudini servono, su quelle previste, per tenere viva la serie.
+// Con l'80% si arrotonda al numero più vicino (almeno 1): con 3 previste ne bastano 2, con 5 ne servono 4.
+export function necessarie(previste, s) {
+  if (!previste) return 0;
+  return s >= 1 ? previste : Math.min(previste, Math.max(1, Math.round(previste * s)));
+}
 
 // ---------- singola abitudine ----------
 
@@ -53,11 +61,11 @@ export function riepilogoGiorno(d, day) {
   return { previste, fatte };
 }
 
-// stato complessivo di un giorno: 'si' se completate (quasi) tutte, secondo SOGLIA_GIORNO_COMPLETO
+// stato complessivo di un giorno: 'si' se fatte abbastanza abitudini, secondo la soglia scelta
 export function statoGiorno(d, day, oggiKey) {
   const { previste, fatte } = riepilogoGiorno(d, day);
   if (!previste) return '-';
-  if (fatte >= previste * SOGLIA_GIORNO_COMPLETO - 1e-9) return 'si';
+  if (fatte >= necessarie(previste, soglia(d))) return 'si';
   return keyOf(day) === oggiKey ? '-' : 'no';
 }
 

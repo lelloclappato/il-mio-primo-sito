@@ -4,7 +4,8 @@
 // che dice cosa fare al tocco: lo legge app.js.
 import { keyOf, todayKey, dateOf, addDays, weekStart, fmt, esc, DAYS_FULL, MONTHS, APP_VERSION } from './utili.js';
 import { data, getVal, getJournal, migrationNote } from './dati.js';
-import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, percentualeComplessiva, piuCostante, livelloGiorno, umoreEAbitudini, daysLabel } from './calcoli.js';
+import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, percentualeComplessiva, piuCostante, livelloGiorno, umoreEAbitudini, daysLabel, soglia, necessarie } from './calcoli.js';
+import { citazioneDelGiorno, fraseMotivazionale } from './frasi.js';
 import { ui } from './stato.js';
 import { icon } from './icone.js';
 import { hasPrimaImport } from './backup.js';
@@ -84,6 +85,7 @@ function viewOggi() {
   html += migrationBanner() + backupBanner();
   if (isToday && data.habits.length) html += heroSerie(doneN, list.length);
   else if (list.length) html += `<p class="muted num" style="margin:8px 0 4px">${doneN} di ${list.length} completate</p>`;
+  if (data.habits.length) html += cardCitazione();
 
   if (!data.habits.length) {
     html += empty('sprout', 'Nessuna abitudine, per ora',
@@ -115,27 +117,43 @@ function cardDiario() {
   </section>`;
 }
 
-// Riquadro in cima a "Oggi": la serie complessiva (giorni di fila con tutte le abitudini previste
-// completate) e l'avanzamento di oggi. I messaggi incoraggiano, non rimproverano.
+// Riquadro in cima a "Oggi": la serie complessiva (giorni di fila con abbastanza abitudini fatte,
+// secondo la soglia scelta: tutte o circa l'80%), quante ne mancano per continuarla,
+// l'avanzamento di oggi e una frase di incoraggiamento. I messaggi incoraggiano, non rimproverano.
 function heroSerie(doneN, tot) {
   const { attuale, migliore } = serieComplessiva(data);
-  const completa = tot > 0 && doneN === tot;
+  const servono = necessarie(tot, soglia(data)), manca = Math.max(0, servono - doneN);
+  const perfetta = tot > 0 && doneN === tot;
   let sotto;
   if (!tot) sotto = 'Oggi niente in programma: la serie resta al sicuro.';
-  else if (completa) sotto = 'Giornata completa! La serie è salva.';
-  else if (attuale === 0) sotto = 'Completa le abitudini di oggi per iniziare una nuova serie.';
-  else sotto = `Completa le abitudini di oggi per arrivare a ${attuale + 1}.`;
+  else if (perfetta) sotto = 'Giornata perfetta! La serie è salva.';
+  else if (!manca) sotto = `Serie salva! Ne ${tot - doneN === 1 ? 'manca 1' : 'mancano ' + (tot - doneN)} per la giornata perfetta.`;
+  else sotto = `Ne ${manca === 1 ? 'manca' : 'mancano'} <strong class="num">${manca}</strong> per ${attuale > 0 ? `continuare la serie (sale a ${attuale + 1})` : 'iniziare una nuova serie'}.`;
+  const frase = fraseMotivazionale({ previste: tot, fatte: doneN, servono, ora: new Date().getHours(), chiaveGiorno: todayKey() });
+  // con la soglia all'80% una tacca sulla barra segna il punto in cui la serie è salva
+  const tacca = tot && servono < tot ? `<b class="tacca" style="left:${servono / tot * 100}%"></b>` : '';
   return `<section class="card hero" aria-label="Serie complessiva">
     <div class="row">
       <div class="hero-ico">${icon('flame', 28)}</div>
       <div class="grow">
         <div class="hero-num"><b class="num">${attuale}</b> ${attuale === 1 ? 'giorno' : 'giorni'} di fila</div>
-        <div class="muted small">${migliore > attuale ? `Record: ${migliore} · ` : attuale > 0 ? 'È il tuo record · ' : ''}${sotto}</div>
+        <div class="muted small">${migliore > attuale ? `Record: ${migliore}` : attuale > 0 ? 'È il tuo record!' : ''}</div>
       </div>
     </div>
-    ${tot ? `<div class="hero-oggi"><span class="num">${doneN} di ${tot}</span> completate oggi
-      <div class="bar ${completa ? 'full' : ''}" aria-hidden="true"><i style="width:${Math.round(doneN / tot * 100)}%"></i></div></div>` : ''}
+    ${tot ? `<p class="hero-manca">${sotto}</p>
+    <div class="hero-oggi"><span class="num">${doneN} di ${tot}</span> completate oggi
+      <div class="bar ${perfetta ? 'full' : ''}" aria-hidden="true"><i style="width:${Math.round(doneN / tot * 100)}%"></i>${tacca}</div></div>
+    ${frase ? `<p class="hero-frase">${frase}</p>` : ''}` : `<p class="hero-manca">${sotto}</p>`}
   </section>`;
+}
+
+// Citazione del giorno: cambia ogni giorno (anche guardando i giorni passati).
+function cardCitazione() {
+  const c = citazioneDelGiorno(ui.viewKey);
+  return `<figure class="card citazione">
+    <blockquote>«${esc(c.testo)}»</blockquote>
+    <figcaption>— ${esc(c.autore)}${c.fonte ? `, <cite>${esc(c.fonte)}</cite>` : ''}</figcaption>
+  </figure>`;
 }
 
 // scheda di una singola abitudine in "Oggi"
@@ -273,6 +291,20 @@ function umoreCard(now) {
 
 // ---------- Abitudini ----------
 
+// Riquadro "Serie": quante abitudini servono ogni giorno per tenere viva la serie complessiva.
+function cardSerie() {
+  const s = soglia(data), oggi = new Date();
+  const previste = data.habits.filter(h => scheduled(h, oggi)).length;
+  const esempio = previste > 1 ? ` Oggi: ne ${necessarie(previste, 0.8) === 1 ? 'basta 1' : 'bastano ' + necessarie(previste, 0.8)} su ${previste}.` : '';
+  return `<h2>Serie</h2><div class="card">
+    <fieldset class="seg"><legend>Per continuare la serie servono</legend>
+      <label><input type="radio" name="soglia" value="1" ${s === 1 ? 'checked' : ''}><span><b>Tutte (100%)</b><small>Tutte le abitudini previste nel giorno</small></span></label>
+      <label><input type="radio" name="soglia" value="0.8" ${s === 0.8 ? 'checked' : ''}><span><b>Quasi tutte (80%)</b><small>Circa l’80%, arrotondato.${esempio}</small></span></label>
+    </fieldset>
+    <p class="muted small" style="margin:10px 0 0">Vale anche per i giorni passati: cambiando la scelta, la serie viene ricalcolata.</p>
+  </div>`;
+}
+
 // Riquadro "Promemoria": attivazione, orario e spiegazione onesta dei limiti.
 function cardPromemoria() {
   const r = data.settings.reminder, p = permesso(), attivo = r.on && p === 'granted';
@@ -317,7 +349,7 @@ function viewHabits() {
       <div class="muted">${h.type === 'check' ? 'Sì / No' : 'Obiettivo ' + fmt(h.target) + ' ' + esc(h.unit)} · ${daysLabel(h)}</div></div>
       <button class="btn sec" data-act="edit" data-id="${h.id}" aria-label="Modifica ${esc(h.name)}">Modifica</button></div>`;
   }
-  html += cardPromemoria() + cardInstalla();
+  html += cardSerie() + cardPromemoria() + cardInstalla();
   html += `<h2>Dati</h2><div class="card">
     <div class="muted">I dati restano solo su questo dispositivo. Fai un backup ogni tanto.</div>
     <div class="muted" style="margin-top:4px">Ultimo backup: ${data.lastBackup ? esc(data.lastBackup) : 'mai'}</div>

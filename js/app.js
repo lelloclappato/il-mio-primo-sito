@@ -105,6 +105,13 @@ document.addEventListener('change', async e => {
     } else data.settings.reminder.on = false;
     save(); programma(); render(); return;
   }
+  // --- soglia della serie (100% o 80%) ---
+  if (e.target.name === 'soglia') {
+    data.settings.soglia = Number(e.target.value); save(); render();
+    document.querySelector(`input[name="soglia"][value="${e.target.value}"]`).focus();
+    annuncia(e.target.value === '1' ? 'Per la serie servono tutte le abitudini' : 'Per la serie basta circa l’80% delle abitudini');
+    return;
+  }
   if (e.target.id === 'rem-time' && e.target.value) {
     data.settings.reminder.time = e.target.value; save(); programma(); render();
     annuncia(`Promemoria alle ${e.target.value}`); return;

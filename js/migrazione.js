@@ -11,14 +11,14 @@
 //   habits:  [{ id, name, type: 'check' | 'qty', target, unit, step, days: [0..6], created: "AAAA-MM-GG" }],
 //   logs:    { "AAAA-MM-GG": { idAbitudine: valore } },      // solo i giorni con qualcosa di segnato
 //   journal: { "AAAA-MM-GG": { mood: 1..5, note: "testo" } }, // nota e umore del giorno (facoltativi)
-//   settings: { reminder: { on: false, time: "20:30" } }
+//   settings: { reminder: { on: false, time: "20:30" }, soglia: 1 }   // soglia: 1 = tutte, 0.8 = circa l'80%
 // }
 import { todayKey, uid } from './utili.js';
 
 export const CURRENT_VERSION = 2;
 
 export function defaultSettings() {
-  return { reminder: { on: false, time: '20:30' } };
+  return { reminder: { on: false, time: '20:30' }, soglia: 1 };
 }
 
 // Porta un oggetto dati (versione 1 o 2) al formato attuale. Non modifica l'originale.
@@ -35,7 +35,7 @@ export function upgrade(d) {
   d.settings = { ...s, reminder: {
     on: r.on === true,
     time: typeof r.time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(r.time) ? r.time : defaultSettings().reminder.time
-  } };
+  }, soglia: s.soglia === 0.8 ? 0.8 : 1 };
   if (d.lastBackup === undefined) d.lastBackup = null;
   d.version = CURRENT_VERSION;
   return d;
