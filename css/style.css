@@ -1,0 +1,488 @@
+/* Stile dell'app Abitudini.
+   Ordine: 1) font  2) colori (variabili)  3) base  4) componenti  5) accessibilità */
+
+/* ---------- 1. Font ----------
+   I file sono nella cartella fonts/ del sito: niente richieste a Google, più veloce e più privato.
+   font-display: swap = mostra subito il testo con un font di riserva e cambia quando il file è pronto.
+   unicode-range = il file copre solo l'alfabeto latino (lettere accentate italiane comprese). */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('../fonts/plus-jakarta-sans-latin-variabile.woff2') format('woff2');
+  font-weight: 200 800; /* font "variabile": un solo file per tutti i pesi */
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Fraunces';
+  src: url('../fonts/fraunces-latin-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------- 2. Colori ----------
+   Ogni colore ha un nome (variabile CSS) e si usa sempre tramite var(--nome).
+   Per cambiare un colore in tutta l'app basta modificarlo qui.
+   Contrasti verificati (rapporto minimo 4.5:1 per il testo, 3:1 per barre e bordi): vedi README. */
+:root {
+  --font-text: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif; /* titoli e numeri grandi */
+
+  /* tema chiaro */
+  --bg: #f4f6f5;          /* sfondo della pagina */
+  --card: #ffffff;        /* schede */
+  --text: #14201d;        /* testo principale */
+  --muted: #56645f;       /* testo secondario */
+  --line: #dfe6e3;        /* bordi e separatori */
+  --accent: #0f766e;      /* verde-acqua: colore principale, barre in corso */
+  --accent-soft: #d6f0ec; /* sfondo tenue verde-acqua */
+  --on-accent: #ffffff;   /* testo sopra --accent */
+  --track: #dcebe7;       /* binario vuoto delle barre */
+  --done: #1f9254;        /* verde delle barre completate */
+  --gold: #a16207;        /* ambra/oro: serie, premi, livelli */
+  --gold-text: #854d0e;   /* testo sopra --gold-soft */
+  --gold-soft: #fdf1d2;
+  --coral: #b33d35;       /* corallo: giorni saltati, avvisi, eliminazioni */
+  --coral-soft: #fde8e4;
+  --shadow: 0 1px 2px rgba(20, 32, 29, .06);
+  --backdrop: rgba(0, 0, 0, .45);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1513;
+    --card: #17211e;
+    --text: #e8f0ed;
+    --muted: #9fb0aa;
+    --line: #2b3833;
+    --accent: #2dd4bf;
+    --accent-soft: #12372f;
+    --on-accent: #06201b;
+    --track: #22322d;
+    --done: #86efac;
+    --gold: #fbbf24;
+    --gold-text: #fcd34d;
+    --gold-soft: #3a2d0f;
+    --coral: #f79486;
+    --coral-soft: #3d2320;
+    --shadow: none;
+    --backdrop: rgba(0, 0, 0, .6);
+  }
+}
+
+/* ---------- 3. Base ---------- */
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 400 16px/1.45 var(--font-text);
+  padding: 0 16px calc(88px + env(safe-area-inset-bottom)); /* spazio per la barra in basso */
+  max-width: 640px; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font: 600 30px/1.15 var(--font-display); margin: 20px 0 4px; letter-spacing: -.01em; }
+h2 { font-size: 13px; margin: 26px 0 8px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.muted { color: var(--muted); font-size: 14px; }
+.small { font-size: 13px; }
+a { color: var(--accent); }
+button { font: inherit; color: inherit; cursor: pointer; }
+.ico { display: block; flex: none; }
+/* numeri a larghezza fissa: le cifre non "ballano" quando il valore cambia */
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- 4. Componenti ---------- */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; margin: 10px 0; box-shadow: var(--shadow); }
+.row { display: flex; align-items: center; gap: 12px; }
+.grow { flex: 1; min-width: 0; }
+.title { font-weight: 600; font-size: 17px; }
+
+/* barra della data */
+.datebar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 0 6px; }
+.datebar .d { font-weight: 600; font-size: 17px; text-align: center; flex: 1; }
+.summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0 4px; }
+
+/* pulsanti */
+.ibtn { /* pulsante quadrato con sola icona: 44×44 px, la misura minima comoda per il dito */
+  width: 44px; height: 44px; flex: none; border-radius: 12px; border: 1px solid var(--line); background: var(--card);
+  display: inline-flex; align-items: center; justify-content: center; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; border: 0; background: var(--accent); color: var(--on-accent);
+  padding: 10px 16px; border-radius: 12px; font-weight: 600; }
+.btn.sec { background: var(--card); color: var(--text); border: 1px solid var(--line); }
+.btn.danger { background: var(--coral-soft); color: var(--coral); }
+.btn.block { width: 100%; margin-top: 8px; }
+.linkbtn { /* pulsante che sembra un link, ma con area di tocco di 44 px */
+  display: inline-flex; align-items: center; gap: 4px;
+  min-height: 44px; padding: 0 8px; border: 0; background: none; color: var(--accent); font-weight: 600; }
+button:disabled { opacity: .4; cursor: default; }
+
+/* abitudine a spunta */
+.check {
+  width: 52px; height: 52px; flex: none; border-radius: 50%; border: 2px solid var(--line); background: var(--card);
+  color: transparent; display: inline-flex; align-items: center; justify-content: center; }
+.check.on { background: var(--done); border-color: var(--done); color: var(--card); }
+
+/* barra di avanzamento */
+.bar { height: 10px; border-radius: 99px; background: var(--track); overflow: hidden; margin-top: 10px; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.bar.full > i { background: var(--done); }
+
+/* contatore delle quantità */
+.qty { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.qty .val { flex: 1; min-height: 44px; text-align: center; font-weight: 700; font-size: 20px; padding: 8px; border-radius: 10px; border: 0; background: transparent; font-variant-numeric: tabular-nums; }
+.qty .val small { font-weight: 500; color: var(--muted); font-size: 14px; }
+
+/* serie di giorni (oro) */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px; flex: none;
+  font-size: 14px; font-weight: 700; color: var(--gold-text); background: var(--gold-soft);
+  padding: 4px 10px 4px 8px; border-radius: 99px; font-variant-numeric: tabular-nums; }
+.badge .ico { color: var(--gold); }
+
+/* barra delle schede in basso */
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--card); border-top: 1px solid var(--line);
+  display: flex; justify-content: center; padding-bottom: env(safe-area-inset-bottom); }
+.tabs .in { display: flex; width: 100%; max-width: 640px; }
+.tabs button { flex: 1; border: 0; background: none; padding: 8px 4px 10px; font-size: 13px; font-weight: 500; color: var(--muted);
+  display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 56px; }
+.tabs button .pill-ico { display: flex; padding: 3px 18px; border-radius: 99px; }
+.tabs button.on { color: var(--accent); font-weight: 700; }
+.tabs button.on .pill-ico { background: var(--accent-soft); }
+
+/* avvisi */
+.banner { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--accent-soft); border-radius: 12px; padding: 6px 6px 6px 14px; margin: 10px 0; font-size: 14px; }
+.banner > span { flex: 1; min-width: 12em; padding: 6px 0; }
+
+/* statistiche */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; text-align: center; }
+.stats b { display: block; font: 600 26px/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+.stats span { display: block; font-size: 13px; line-height: 1.3; color: var(--muted); }
+.heat { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; margin-top: 12px; }
+.heat i { aspect-ratio: 1; border-radius: 4px; background: var(--line); }
+.heat i.done { background: var(--done); }
+.heat i.miss { background: var(--coral-soft); box-shadow: inset 0 0 0 2px var(--coral); }
+.heat i.today { outline: 2px solid var(--text); outline-offset: 1px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; background: var(--line); }
+.legend i.done { background: var(--done); }
+.legend i.miss { background: var(--coral-soft); box-shadow: inset 0 0 0 2px var(--coral); }
+
+/* pannello a comparsa (crea/modifica abitudine) */
+.modal { position: fixed; inset: 0; background: var(--backdrop); display: flex; align-items: flex-end; justify-content: center; z-index: 10; }
+.sheet { background: var(--bg); width: 100%; max-width: 640px; max-height: 92vh; overflow: auto; border-radius: 20px 20px 0 0; padding: 18px 16px calc(20px + env(safe-area-inset-bottom)); }
+.sheet h1 { margin: 0; font-size: 24px; }
+label { display: block; font-size: 14px; font-weight: 500; color: var(--muted); margin: 14px 0 6px; }
+input[type=text], input[type=number], select { width: 100%; min-height: 48px; font: inherit; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--text); }
+.days { display: flex; flex-wrap: wrap; gap: 3px; } /* su schermi molto stretti vanno a capo invece di scendere sotto 44 px */
+.days button { flex: 1; min-width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); font-weight: 600; }
+.days button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.quick { display: flex; gap: 4px; margin-top: 4px; margin-left: -8px; }
+
+/* nessuna abitudine */
+.empty { text-align: center; color: var(--muted); padding: 32px 16px; }
+.empty > .ico { margin: 0 auto 10px; color: var(--accent); } /* solo l'icona grande, non quella del pulsante */
+.empty p { margin: 0 0 14px; }
+.empty strong { display: block; color: var(--text); font-size: 17px; margin-bottom: 4px; }
+
+/* ---------- 5. Interazione e accessibilità ---------- */
+
+/* piccole transizioni: colore e sfondo cambiano in modo morbido */
+.btn, .ibtn, .check, .days button, .tabs button, .linkbtn, .qty .val {
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .1s ease; }
+.bar > i { transition: width .25s ease, background-color .25s ease; }
+
+/* stato "premuto": il pulsante si rimpicciolisce appena sotto il dito */
+.btn:active:not(:disabled), .ibtn:active:not(:disabled), .check:active, .days button:active,
+.linkbtn:active, .qty .val:active { transform: scale(.96); }
+.tabs button:active .pill-ico { background: var(--accent-soft); }
+@media (hover: hover) { /* solo con il mouse: sul telefono l'effetto resterebbe "appiccicato" */
+  .ibtn:hover:not(:disabled), .btn.sec:hover, .days button:not(.on):hover, .check:not(.on):hover { border-color: var(--accent); }
+  .linkbtn:hover { text-decoration: underline; }
+}
+
+/* focus visibile quando si usa la tastiera (non al tocco) */
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.modal :focus-visible, input:focus-visible, select:focus-visible { outline-offset: 1px; }
+
+/* testo leggibile solo dai lettori di schermo */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* chi ha chiesto al sistema meno animazioni non le vede */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+  .btn:active, .ibtn:active, .check:active, .days button:active, .linkbtn:active, .qty .val:active { transform: none; }
+}
+
+/* ---------- Riquadro della serie in "Oggi" ---------- */
+.hero { padding: 16px; }
+.hero-ico { width: 52px; height: 52px; flex: none; border-radius: 50%; background: var(--gold-soft); color: var(--gold);
+  display: flex; align-items: center; justify-content: center; }
+.hero-num { font-weight: 600; font-size: 17px; }
+.hero-num b { font: 600 30px/1 var(--font-display); margin-right: 2px; }
+.hero-oggi { margin-top: 14px; font-size: 14px; color: var(--muted); }
+.hero-oggi .num { color: var(--text); font-weight: 700; }
+.hero-oggi .bar { margin-top: 6px; }
+
+/* ---------- Scelta del tipo (Sì/No o Quantità) ----------
+   Sono veri pulsanti di scelta (radio) resi come due riquadri: funzionano con tastiera e lettori di schermo. */
+.seg { border: 0; padding: 0; margin: 14px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.seg legend { font-size: 14px; font-weight: 500; color: var(--muted); padding: 0; margin-bottom: 6px; }
+.seg label { margin: 0; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.seg span { display: block; height: 100%; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); transition: background-color .15s ease, border-color .15s ease; }
+.seg b { display: block; color: var(--text); font-size: 16px; }
+.seg small { display: block; color: var(--muted); font-size: 13px; line-height: 1.3; margin-top: 2px; }
+.seg input:checked + span { border: 2px solid var(--accent); background: var(--accent-soft); padding: 9px 11px; }
+.seg input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Diario: umore e nota ---------- */
+.moods { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 12px 0 10px; }
+.mood { min-height: 64px; min-width: 44px; border: 1px solid transparent; border-radius: 12px; background: none; color: var(--muted);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; padding: 8px 2px 6px;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .1s ease; }
+.mood span { font-size: 13px; line-height: 1.2; font-weight: 500; }
+.mood.on { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+.mood.on .ico { color: var(--accent); }
+.mood:active { transform: scale(.95); }
+@media (hover: hover) { .mood:not(.on):hover { border-color: var(--line); color: var(--text); } }
+textarea { width: 100%; font: inherit; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); resize: vertical; min-height: 80px; }
+textarea::placeholder, input::placeholder { color: var(--muted); }
+
+/* ---------- Statistiche ---------- */
+.stats.four { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.stats.four b { font-size: 22px; }
+.top { display: flex; align-items: flex-start; gap: 8px; margin: 14px 0 0; font-size: 14px; }
+.top .ico { color: var(--gold); margin-top: 1px; }
+
+/* griglia delle settimane: livelli di colore mescolando il verde "completato" con il binario vuoto */
+.cal { display: grid; grid-template-rows: auto repeat(7, auto); grid-auto-flow: column; gap: 3px; margin-top: 12px; }
+.cal-l { font-size: 12px; line-height: 1; color: var(--muted); display: flex; align-items: center; padding-right: 4px; }
+.cal-m { white-space: nowrap; height: 16px; padding: 0; } /* il nome del mese può "sbordare" nelle colonne accanto */
+.cal i, .legend i { aspect-ratio: 1; border-radius: 3px; }
+i.l0 { background: var(--track); }
+i.l1 { background: color-mix(in srgb, var(--done) 35%, var(--track)); }
+i.l2 { background: color-mix(in srgb, var(--done) 65%, var(--track)); }
+i.l3 { background: var(--done); }
+i.none { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+i.fut { visibility: hidden; }
+.cal i.today { outline: 2px solid var(--text); outline-offset: 1px; }
+.legend { align-items: center; }
+
+/* ---------- Avviso temporaneo in basso (es. nuova versione) ---------- */
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(72px + env(safe-area-inset-bottom)); z-index: 8;
+  width: calc(100% - 24px); max-width: 616px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  background: var(--card); border: 1px solid var(--accent); border-radius: 14px; padding: 10px 10px 10px 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .25); font-size: 14px; }
+.toast span { flex: 1; min-width: 12em; }
+
+/* ---------- Promemoria ---------- */
+.switch-row { display: flex; align-items: center; gap: 12px; min-height: 44px; margin: 0; color: var(--text); font-size: 16px; font-weight: 500; cursor: pointer; }
+.switch-row input { width: 24px; height: 24px; flex: none; accent-color: var(--accent); margin: 0; cursor: pointer; }
+input[type=time] { width: 100%; min-height: 48px; font: inherit; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--text); color-scheme: light dark; }
+input:disabled { opacity: .55; }
+details.info { margin-top: 10px; font-size: 14px; color: var(--muted); }
+details.info summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--accent); font-weight: 600; }
+details.info p { margin: 0 0 8px; }
+
+/* ---------- Serie: quante mancano, tacca dell'80%, frase ---------- */
+.hero-manca { margin: 12px 0 0; font-size: 15px; }
+.hero-manca strong { font-size: 17px; }
+.bar { position: relative; }
+.bar .tacca { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: var(--gold); border-radius: 2px; }
+.hero-frase { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 15px; font-weight: 500; color: var(--accent); }
+
+/* ---------- Citazione del giorno ---------- */
+.citazione { margin: 10px 0; padding: 14px 16px; background: var(--gold-soft); border-color: transparent; box-shadow: none; }
+.citazione blockquote { margin: 0; font: 600 17px/1.4 var(--font-display); color: var(--text); }
+.citazione figcaption { margin-top: 6px; font-size: 14px; color: var(--gold-text); font-weight: 600; }
+.citazione cite { font-style: normal; font-weight: 500; }
+
+/* ---------- Obiettivo di serie ---------- */
+.ico.inline { display: inline-block; vertical-align: -3px; margin-right: 2px; color: var(--gold); }
+.goal-cta { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; margin-top: 14px; padding: 10px 14px;
+  border: 1px dashed var(--gold); border-radius: 12px; background: var(--gold-soft); color: var(--gold-text); text-align: left; }
+.goal-cta b { display: block; font-size: 15px; }
+.goal-cta small { display: block; font-size: 13px; color: var(--text); opacity: .85; }
+.goal { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.goal > .row > .ico { color: var(--gold); }
+.goal b { font-size: 15px; }
+.goal .linkbtn { flex: none; }
+.bar.gold > i { background: var(--gold); }
+.goal-premio { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 14px; color: var(--gold-text); }
+.goal-premio .ico { color: var(--gold); }
+.seg { grid-template-columns: 1fr 1fr; }
+
+/* ---------- Festa: obiettivo raggiunto ---------- */
+.festa { text-align: center; background: var(--gold-soft); border-color: var(--gold); }
+.festa-ico { width: 64px; height: 64px; margin: 4px auto 6px; border-radius: 50%; background: var(--card); color: var(--gold); display: flex; align-items: center; justify-content: center; }
+.festa h2 { margin: 0; color: var(--gold-text); }
+.festa-num { margin: 4px 0 8px; font-size: 16px; }
+.festa-num b { font: 600 34px/1 var(--font-display); }
+.festa p { margin: 8px 0; }
+
+/* ---------- La pianta (SVG in js/gioco/pianta.js) ----------
+   I colori sono variabili: la salute della pianta cambia le variabili, non il disegno. */
+:root {
+  --leaf: #2f9e5b; --leaf-dark: #1e7a44; --stem: #3d7a4f; --trunk: #8a5a3c;
+  --pot: #c47a53; --pot-dark: #a5603f; --soil: #6b4a35; --seed: #b07d3a;
+  --flower: #f0b030; --flower-c: #c2410c; --fruit: #e26d5c; --ground: rgba(20, 32, 29, .08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --leaf: #5cc98a; --leaf-dark: #3aa56b; --stem: #5aa377; --trunk: #9a6647;
+    --pot: #b8714c; --pot-dark: #93583a; --soil: #3b2a1f; --seed: #c99a52;
+    --flower: #fbbf24; --flower-c: #f97316; --fruit: #f79486; --ground: rgba(255, 255, 255, .06);
+  }
+}
+.pianta .p-leaf, .pianta .p-canopy { fill: var(--leaf); }
+.pianta .p-leaf2, .pianta .p-canopy2 { fill: var(--leaf-dark); }
+.pianta .p-stem { fill: none; stroke: var(--stem); stroke-linecap: round; }
+.pianta .p-trunk { fill: var(--trunk); }
+.pianta .p-pot { fill: var(--pot); }
+.pianta .p-pot-rim { fill: var(--pot-dark); }
+.pianta .p-soil { fill: var(--soil); }
+.pianta .p-seed { fill: var(--seed); }
+.pianta .p-flower circle { fill: var(--flower); }
+.pianta .p-flower-c { fill: var(--flower-c); }
+.pianta .p-fruit { fill: var(--fruit); }
+.pianta .p-ground { fill: var(--ground); }
+/* colori propri di alcune specie */
+.pianta { --bloom: #f4a6c1; --bloom-dark: #e07fa3; --petal: #f5b82e; --disc: #6b4423; --cactus: #4c9a6a; --cactus-dark: #2f7a4e;
+  --olive: #4b3a5c; --acorn: #a0703f; --cap: #6d4c2c; --spike: #f3eef8; --bud: #6fae4f; }
+.pianta.specie-olivo { --leaf: #8aa58a; --leaf-dark: #6c8a6d; --trunk: #7d6a55; }
+.pianta.specie-quercia { --leaf: #2f7d45; --leaf-dark: #22603a; --trunk: #6f4a30; }
+.pianta.specie-ciliegio { --trunk: #5e3b35; }
+.pianta.specie-basilico { --leaf: #3db35f; --leaf-dark: #2a8f49; }
+.pianta .p-bloom { fill: var(--bloom); }
+.pianta .p-bloom2 { fill: var(--bloom-dark); }
+.pianta .p-blossom-w { fill: #fff5f8; }
+.pianta .p-petal ellipse { fill: var(--petal); }
+.pianta .p-disc { fill: var(--disc); }
+.pianta .p-seedpt { fill: #3b2614; }
+.pianta .p-bud { fill: var(--bud); }
+.pianta .p-cactus { fill: var(--cactus); }
+.pianta .p-cactus-rib { fill: none; stroke: var(--cactus-dark); stroke-width: 1.2; stroke-linecap: round; }
+.pianta .p-spine { fill: #f4f1e4; }
+.pianta .p-flower-pink ellipse { fill: #f06d9b; }
+.pianta .p-olive { fill: var(--olive); }
+.pianta .p-acorn { fill: var(--acorn); }
+.pianta .p-cap { fill: var(--cap); }
+.pianta .p-spike circle { fill: var(--spike); stroke: #c9b8d9; stroke-width: .5; }
+/* stanca: colori spenti; appassita: foglie giallo-marroni (vengono dopo le specie, quindi prevalgono) */
+.pianta.aspetto-stanca { --leaf: #93a651; --leaf-dark: #74853b; --stem: #7d8a55; --cactus: #8a9a55; --cactus-dark: #6d7c40; --bloom: #d9aebb; --bloom-dark: #c08c9d; }
+.pianta.aspetto-appassita { --leaf: #b89a5a; --leaf-dark: #9a7d44; --stem: #8d7a52; --cactus: #a8955a; --cactus-dark: #8a7843; --disc: #7a5a3a; }
+.pianta .fallen { opacity: .8; }
+/* un leggero ondeggiare quando è in forma (niente per chi preferisce meno animazioni) */
+.pianta .p-sway { transform-origin: 60px 100px; }
+@media (prefers-reduced-motion: no-preference) {
+  .pianta.aspetto-ok .p-sway { animation: ondeggia 5s ease-in-out infinite; }
+}
+@keyframes ondeggia { 0%, 100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+
+/* ---------- Gioco: scheda in "Oggi" ---------- */
+.g-card { display: flex; gap: 12px; align-items: flex-start; }
+.g-svg { flex: none; border: 0; background: var(--bg); border-radius: 14px; padding: 4px 4px 0; line-height: 0; }
+.g-nome { font: 600 20px/1.2 var(--font-display); }
+.g-nome .muted { font-family: var(--font-text); }
+.g-bar { margin-top: 8px; }
+.g-bar-l { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.g-bar-l .num { color: var(--text); font-weight: 600; }
+.g-bar .bar { margin-top: 4px; height: 8px; }
+.bar.salute-ok > i { background: var(--done); }
+.bar.salute-stanca > i { background: var(--gold); }
+.bar.salute-appassita > i { background: var(--coral); }
+.g-frase { margin: 8px 0 0; font-size: 14px; }
+.g-salv { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--gold-soft); color: var(--gold-text); font-size: 14px; }
+.g-salv .ico { flex: none; color: var(--gold); }
+
+/* ---------- Gioco: schermata "Traguardi" ---------- */
+.g-big { text-align: center; }
+.g-big .pianta { display: block; margin: 0 auto; }
+.g-big .g-bar { text-align: left; }
+.g-nome.big { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 26px; margin-top: 4px; }
+.g-nome.big .ibtn { width: 44px; height: 44px; }
+.g-stadi { display: flex; justify-content: space-between; gap: 4px; margin-top: 14px; font-size: 12px; color: var(--muted); }
+.g-stadi span { flex: 1; padding: 4px 0; border-top: 3px solid var(--track); }
+.g-stadi span.on { border-top-color: var(--done); color: var(--text); font-weight: 600; }
+.card > .row > .ico { color: var(--gold); flex: none; }
+.g-lista { list-style: none; margin: 0; padding: 0; }
+.g-lista li { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.g-lista li:last-child { border-bottom: 0; }
+.g-lista .ico { flex: none; color: var(--gold); }
+.g-medaglie { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.g-med { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 12px 6px;
+  border-radius: 14px; border: 1px dashed var(--line); color: var(--muted); font-size: 12px; line-height: 1.3; }
+.g-med b { font-size: 13px; color: var(--text); }
+.g-med.on { border: 1px solid var(--gold); background: var(--gold-soft); color: var(--gold-text); }
+.g-med.on .ico { color: var(--gold); }
+.g-med:not(.on) b { color: var(--muted); }
+
+/* tre scelte in fila (difficoltà) */
+.seg.tre { grid-template-columns: repeat(3, 1fr); }
+
+/* calendario: giorno protetto dal salvagente */
+i.salv { box-shadow: inset 0 0 0 2px var(--gold); }
+
+/* barra in basso con 4 schede */
+.tabs button .pill-ico { padding: 3px 14px; }
+
+/* ---------- Avviso di festa e coriandoli ---------- */
+.toast.evento { border-color: var(--gold); }
+.toast.evento > .ico { color: var(--gold); flex: none; }
+.toast.evento .ibtn { width: 44px; height: 44px; border: 0; background: none; }
+.coriandoli { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 20; }
+.coriandoli i { position: absolute; top: -12px; width: 8px; height: 12px; border-radius: 2px; opacity: .9;
+  animation-name: cade; animation-timing-function: cubic-bezier(.3, .6, .6, 1); animation-fill-mode: forwards; }
+@keyframes cade { to { transform: translate(var(--deriva), 105vh) rotate(var(--giro)); opacity: .7; } }
+
+/* ---------- Google Calendar ---------- */
+.ico.inline.ok { color: var(--done); }
+.g-msg { margin: 10px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--accent-soft); }
+.g-impegni { list-style: none; margin: 8px 0 0; padding: 0; }
+.g-impegni li { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+.g-impegni li:last-child { border-bottom: 0; }
+.g-impegni .num { font-weight: 600; margin-right: 6px; }
+.g-fasce { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.g-fasce label { margin: 0 0 6px; }
+.g-fascia { margin-top: 8px; }
+.g-ricollega { margin: 10px 0; }
+
+/* ---------- Scelta della pianta e curiosità ---------- */
+.g-anteprime { display: flex; justify-content: space-between; margin: 4px 0 6px; }
+.g-specie { border: 0; padding: 0; margin: 14px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.g-specie label { margin: 0; cursor: pointer; }
+.g-specie input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.g-specie span { display: flex; flex-direction: column; align-items: center; text-align: center; height: 100%; padding: 8px 8px 10px;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.g-specie b { color: var(--text); font-size: 15px; margin-top: 2px; }
+.g-specie small { color: var(--muted); font-size: 13px; line-height: 1.3; }
+.g-specie input:checked + span { border: 2px solid var(--accent); background: var(--accent-soft); padding: 7px 7px 9px; }
+.g-specie input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.g-curiosita { margin: 0; padding-left: 20px; }
+.g-curiosita li { padding: 6px 0; font-size: 15px; }
+.g-curiosita li.chiusa { color: var(--muted); list-style: none; margin-left: -20px; font-size: 14px; }
+
+/* ---------- Medaglie per categoria ---------- */
+.g-cat { font-size: 15px; margin: 16px 0 8px; display: flex; gap: 8px; align-items: baseline; }
+.g-cat .muted { font-size: 13px; font-weight: 500; }
+.g-med .g-data { font-weight: 600; color: var(--gold-text); }
+.g-med.on.cat-strana { border-style: dashed; }
+
+/* ---------- Diario della sera ---------- */
+.diario.sera { border-color: var(--accent); background: linear-gradient(180deg, var(--accent-soft), var(--card) 120px); }
+.diario .domanda { display: flex; align-items: flex-start; gap: 6px; color: var(--text); font-weight: 600; font-size: 15px; margin: 4px 0 6px; }
+.diario .domanda .ico { color: var(--accent); margin-top: 3px; flex: none; }
+.belle { border: 0; padding: 0; margin: 12px 0 0; display: grid; gap: 6px; }
+.belle legend { font-size: 14px; font-weight: 600; color: var(--muted); padding: 0; margin-bottom: 6px; }
+.belle input { min-height: 44px; }
+.diario .linkbtn { margin: 6px 0 0 -8px; }
+.d-voce { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.d-voce:last-child { border-bottom: 0; }
+.d-voce h3 { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 15px; }
+.d-umore { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.d-domanda { margin: 4px 0 2px; font-size: 13px; color: var(--muted); }
+.d-nota { margin: 0; white-space: pre-wrap; }
+.d-belle { margin: 6px 0 0; padding-left: 20px; font-size: 14px; }

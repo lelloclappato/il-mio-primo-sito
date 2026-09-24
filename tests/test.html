@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test dei calcoli – Abitudini</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 760px; margin: 20px auto; padding: 0 16px; background: #fff; color: #14201d; }
+  .ok { color: #166534; } .ko { color: #b91c1c; font-weight: 600; }
+  pre { background: #fde8e4; padding: 8px; border-radius: 6px; white-space: pre-wrap; }
+  #riepilogo { font-size: 20px; font-weight: 700; }
+</style>
+</head>
+<body>
+<h1>Test dei calcoli</h1>
+<p>Questa pagina esegue i test di <code>tests/calcoli.test.js</code>. Aprila con il server locale
+(<code>python3 -m http.server 8000</code> → <a href="http://localhost:8000/tests/test.html">localhost:8000/tests/test.html</a>).</p>
+<p id="riepilogo">Esecuzione…</p>
+<ol id="elenco"></ol>
+<script type="module" src="calcoli.test.js"></script>
+</body>
+</html>

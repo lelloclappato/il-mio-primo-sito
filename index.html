@@ -3,78 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f766e">
+<!-- colore della barra del browser sul telefono, per tema chiaro e scuro -->
+<meta name="theme-color" content="#0f766e" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1513" media="(prefers-color-scheme: dark)">
 <title>Abitudini</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<style>
-:root{
-  --bg:#f4f6f5;--card:#fff;--text:#14201d;--muted:#5d6b67;--line:#dfe6e3;
-  --accent:#0f766e;--accent-soft:#d6f0ec;--on-accent:#fff;--warn:#b45309;--bad:#dc2626;--bad-soft:#fde2e2;
-}
-@media (prefers-color-scheme:dark){
-  :root{--bg:#0e1513;--card:#17211e;--text:#e8f0ed;--muted:#93a39d;--line:#28352f;
-  --accent:#2dd4bf;--accent-soft:#12372f;--on-accent:#06201b;--warn:#f59e0b;--bad:#f87171;--bad-soft:#3a1c1c}
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0}
-body{background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  padding:0 16px calc(84px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
-h1{font-size:22px;margin:18px 0 4px}
-h2{font-size:16px;margin:22px 0 8px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.muted{color:var(--muted);font-size:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:10px 0}
-.row{display:flex;align-items:center;gap:12px}
-.grow{flex:1;min-width:0}
-.title{font-weight:600;font-size:17px}
-.datebar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 6px}
-.datebar .d{font-weight:700;font-size:18px;text-align:center;flex:1}
-button{font:inherit;color:inherit;cursor:pointer}
-.ibtn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:20px;line-height:1}
-.btn{border:0;background:var(--accent);color:var(--on-accent);padding:12px 16px;border-radius:12px;font-weight:600}
-.btn.sec{background:var(--card);color:var(--text);border:1px solid var(--line)}
-.btn.danger{background:var(--bad-soft);color:var(--bad)}
-.btn.block{width:100%;margin-top:8px}
-.check{width:52px;height:52px;border-radius:50%;border:2px solid var(--line);background:var(--card);font-size:26px;color:transparent;flex:none}
-.check.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.bar{height:10px;border-radius:99px;background:var(--accent-soft);overflow:hidden;margin-top:10px}
-.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .2s}
-.qty{display:flex;align-items:center;gap:10px;margin-top:10px}
-.qty .val{flex:1;text-align:center;font-weight:700;font-size:20px;padding:8px;border-radius:10px;border:0;background:transparent}
-.qty .val small{font-weight:500;color:var(--muted);font-size:14px}
-.badge{font-size:13px;color:var(--warn);font-weight:600;white-space:nowrap}
-.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:4px}
-.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
-  display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
-.tabs .in{display:flex;width:100%;max-width:640px}
-.tabs button{flex:1;border:0;background:none;padding:12px 4px;font-size:13px;color:var(--muted)}
-.tabs button.on{color:var(--accent);font-weight:700}
-.tabs button span{display:block;font-size:20px}
-.banner{background:var(--accent-soft);border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;text-align:center}
-.stats b{display:block;font-size:20px}
-.stats span{font-size:12px;color:var(--muted)}
-.heat{display:grid;grid-template-columns:repeat(14,1fr);gap:3px;margin-top:10px}
-.heat i{aspect-ratio:1;border-radius:4px;background:var(--line);opacity:.5}
-.heat i.done{background:var(--accent);opacity:1}
-.heat i.miss{background:var(--bad);opacity:.45}
-.heat i.today{outline:2px solid var(--text);outline-offset:1px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:10}
-.sheet{background:var(--bg);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom))}
-label{display:block;font-size:14px;color:var(--muted);margin:14px 0 6px}
-input[type=text],input[type=number],select{width:100%;font:inherit;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text)}
-.days{display:flex;gap:6px}
-.days button{flex:1;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:600}
-.days button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.empty{text-align:center;color:var(--muted);padding:30px 10px}
-</style>
+<!-- per iPhone/iPad quando l'app è aggiunta alla schermata Home -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Abitudini">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Traccia le tue abitudini di ogni giorno: serie, statistiche, umore. I dati restano sul tuo telefono.">
+<!-- "preload": il browser scarica subito i font, senza aspettare di leggere il CSS -->
+<link rel="preload" href="fonts/plus-jakarta-sans-latin-variabile.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/fraunces-latin-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div id="app"></div>
-<nav class="tabs"><div class="in" id="tabs"></div></nav>
+<main id="app"></main>
+<nav class="tabs" aria-label="Sezioni"><div class="in" id="tabs"></div></nav>
 <div id="modal"></div>
+<!-- avvisi temporanei (es. "È pronta una nuova versione") -->
+<div id="toast"></div>
+<!-- festeggiamenti del gioco (nuove medaglie, nuovi stadi) -->
+<div id="evento" aria-live="polite"></div>
+<!-- invisibile: i lettori di schermo leggono ad alta voce quello che ci scrive annuncia() -->
+<div id="annuncio" class="sr-only" aria-live="polite"></div>
 <input type="file" id="importFile" accept="application/json" hidden>
-<script src="app.js"></script>
+<!-- type="module": il file può importare funzioni dagli altri file in js/ -->
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
