@@ -26,6 +26,8 @@ Indirizzo: https://lelloclappato.github.io/le-mie-abitudini/
 - **Backup** in un file JSON, con controllo completo del file prima di importarlo
 - **Installabile** sul telefono e funzionante **senza connessione**
 - **Promemoria** con notifica (con i limiti spiegati sotto) e numero di abitudini mancanti sull'icona
+- **Aggiungi al calendario**: per ogni abitudine un evento ricorrente negli stessi giorni, con link a Google Calendar
+  oppure file `.ics` (Google, Apple, Outlook) con l'avviso incluso: il promemoria più affidabile
 - Tema chiaro e scuro automatico, secondo le impostazioni del telefono
 
 ## Come si usa
@@ -102,7 +104,8 @@ richiederebbero un server. Quindi:
 - **Android (Chrome)**: la notifica arriva se a quell'ora l'app è aperta o è rimasta in sottofondo da poco.
 - **iPhone / iPad**: le notifiche funzionano solo con l'app **installata** sulla schermata Home (iOS 16.4 o successivo),
   con lo stesso limite.
-- Per un avviso sicuro ogni giorno conviene un evento ricorrente nel calendario (in arrivo nella Fase 4).
+- Per un avviso sicuro ogni giorno usa **Aggiungi al calendario** (l'icona del calendario accanto a ogni abitudine,
+  nella scheda Abitudini): l'avviso lo manda il calendario del telefono, anche con l'app chiusa.
 
 ## Provarla sul computer
 
@@ -142,6 +145,7 @@ all'elenco `FILES` in `sw.js`, altrimenti non sarà disponibile senza connession
   - `validazione.js`: controllo dei file di backup
   - `calcoli.js`: giorni previsti, completamento, serie, percentuali, statistiche (funzioni "pure", testate)
   - `obiettivo.js`: obiettivo di serie, premio e festa al traguardo
+  - `calendario.js`: pannello "Aggiungi al calendario"; `ics.js`: link di Google Calendar e file `.ics` (funzioni pure, testate)
   - `frasi.js`: citazioni del giorno (con autore verificato), frasi di incoraggiamento, pillole di saggezza
   - `gioco/`: la pianta
     - `config.js`: **tutte le regole e i numeri del gioco**

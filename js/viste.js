@@ -368,7 +368,8 @@ function cardPromemoria() {
     <details class="info"><summary>Perché a volte il promemoria non arriva?</summary>
       <p>Un’app web non può programmare una notifica quando è chiusa: il telefono la sospende per risparmiare batteria.
       Il promemoria arriva se a quell’ora l’app è aperta o è rimasta in sottofondo da poco.</p>
-      <p>Per un avviso sicuro ogni giorno usa un evento ricorrente nel calendario del telefono: presto potrai crearlo da qui.</p>
+      <p>Per un avviso sicuro ogni giorno usa un evento ricorrente nel calendario del telefono: tocca l’icona del calendario
+      accanto a un’abitudine qui sopra. Lì l’avviso lo manda il calendario, anche con l’app chiusa.</p>
     </details>
   </div>`;
 }
@@ -391,6 +392,7 @@ function viewHabits() {
   for (const h of data.habits) {
     html += `<div class="card row"><div class="grow"><div class="title">${esc(h.name)}</div>
       <div class="muted">${h.type === 'check' ? 'Sì / No' : 'Obiettivo ' + fmt(h.target) + ' ' + esc(h.unit)} · ${daysLabel(h)} · ${DIFFICOLTA[h.diff] || 'media'}</div></div>
+      <button class="ibtn" data-act="calOpen" data-id="${h.id}" aria-label="Aggiungi ${esc(h.name)} al calendario">${icon('calendar', 20)}</button>
       <button class="btn sec" data-act="edit" data-id="${h.id}" aria-label="Modifica ${esc(h.name)}">Modifica</button></div>`;
   }
   html += cardSerie() + cardPromemoria() + cardInstalla();

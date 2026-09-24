@@ -14,6 +14,7 @@ import { setupPWA, installa } from './pwa.js';
 import { programma, chiediPermesso } from './promemoria.js';
 import { openGoal, renderGoal, syncGoal, saveGoal, removeGoal, closeGoal, festeggiato, controllaObiettivo } from './obiettivo.js';
 import { openNome, saveNome, closeNome, nuoviEventi, mostraEventi } from './gioco/vista.js';
+import { openCal, closeCal, apriGoogle, scaricaIcs } from './calendario.js';
 
 // Da chiamare dopo ogni cambiamento ai dati: ridisegna e, se è successo qualcosa di bello
 // (obiettivo raggiunto, nuova medaglia, nuovo stadio della pianta), festeggia.
@@ -30,7 +31,7 @@ document.addEventListener('click', e => {
   const h = id ? data.habits.find(x => x.id === id) : null;
   if (el.tagName === 'A') e.preventDefault();
   // tocco sullo sfondo scuro del pannello (non sul pannello stesso): chiudi
-  if (act === 'closeBg') { if (e.target === el) { if (ui.goal) closeGoal(); else if (ui.nome) closeNome(); else closeForm(); } return; }
+  if (act === 'closeBg') { if (e.target === el) { if (ui.goal) closeGoal(); else if (ui.nome) closeNome(); else if (ui.cal) closeCal(); else closeForm(); } return; }
   switch (act) {
     // --- navigazione ---
     case 'tab': ui.tab = id; render(); window.scrollTo(0, 0); break;
@@ -114,6 +115,11 @@ document.addEventListener('click', e => {
       break;
     case 'festaOk': festeggiato(); render(); break;
     case 'festaNuovo': festeggiato(); render(); openGoal(); break;
+    // --- aggiungi al calendario ---
+    case 'calOpen': openCal(id); break;
+    case 'calClose': closeCal(); break;
+    case 'calGoogle': apriGoogle(); break;
+    case 'calIcs': scaricaIcs(); annuncia('File del calendario scaricato'); break;
     // --- gioco della pianta ---
     case 'nomeApri': openNome(); break;
     case 'nomeChiudi': closeNome(); break;
@@ -188,13 +194,14 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && ui.form) closeForm();
   else if (e.key === 'Escape' && ui.goal) closeGoal();
   else if (e.key === 'Escape' && ui.nome) closeNome();
+  else if (e.key === 'Escape' && ui.cal) closeCal();
 });
 
 // quando si torna all'app (es. il giorno dopo), ridisegna per aggiornare le date
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') programma(); // il timer del promemoria può essere stato sospeso
   if (document.visibilityState === 'visible' && !ui.form && ui.viewKey > todayKey()) { ui.viewKey = todayKey(); }
-  if (document.visibilityState === 'visible' && !ui.form && !ui.goal && !ui.nome) render();
+  if (document.visibilityState === 'visible' && !ui.form && !ui.goal && !ui.nome && !ui.cal) render();
 });
 
 setupImport(dopoCambio);

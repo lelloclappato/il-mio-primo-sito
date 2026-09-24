@@ -9,6 +9,7 @@ import {
 import { upgrade } from '../js/migrazione.js';
 import { controllaBackup } from '../js/validazione.js';
 import { simula, moltiplicatore, stadioDaPunti } from '../js/gioco/motore.js';
+import { regolaRipetizione, primoGiorno as primoGiornoCal, dataOra, linkGoogle, creaIcs, testoIcs, piega } from '../js/ics.js';
 import { serieDal, progressoObiettivo, giorniSalvagente } from '../js/calcoli.js';
 import { fraseMotivazionale, momento, elenco, citazioneDelGiorno, CITAZIONI } from '../js/frasi.js';
 
@@ -337,5 +338,46 @@ test('salvagente: disponibili nel mese', () => {
   const r = simula(dati([ogniGiorno('a', 10)], { a: [1, 3, 4, 5] }), OGGI);
   uguale(r.salvagente, { disponibili: 0, usatiMese: [k(2)] });
 });
+
+// ---------- aggiungi al calendario ----------
+test('calendario: regola di ripetizione', () => {
+  uguale(regolaRipetizione([0, 1, 2, 3, 4, 5, 6]), 'RRULE:FREQ=DAILY');
+  uguale(regolaRipetizione([5, 1, 3]), 'RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR');
+  uguale(regolaRipetizione([0, 6]), 'RRULE:FREQ=WEEKLY;BYDAY=SA,SU');
+});
+test('calendario: l’evento parte dal primo giorno previsto', () => {
+  uguale(keyOf(primoGiornoCal([4], OGGI)), k(0));                       // giovedì: oggi
+  uguale(keyOf(primoGiornoCal([1, 3, 5], OGGI)), keyOf(addDays(OGGI, 1))); // venerdì 25
+  uguale(dataOra(OGGI, '07:05'), '20260924T070500');
+});
+test('calendario: link di Google Calendar', () => {
+  const h = { ...ogniGiorno('a'), name: 'Lettura & relax', days: [1, 3, 5] };
+  const u = new URL(linkGoogle(h, { ora: '20:30', durata: 15, da: OGGI, url: 'https://x.it/', fuso: 'Europe/Rome' }));
+  uguale([u.hostname, u.searchParams.get('action'), u.searchParams.get('text'), u.searchParams.get('dates'), u.searchParams.get('recur'), u.searchParams.get('ctz')],
+    ['calendar.google.com', 'TEMPLATE', 'Lettura & relax', '20260925T203000/20260925T204500', 'RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR', 'Europe/Rome']);
+});
+test('calendario: evento che passa la mezzanotte', () => {
+  const u = new URL(linkGoogle(ogniGiorno('a'), { ora: '23:50', durata: 30, da: OGGI, url: 'u' }));
+  uguale(u.searchParams.get('dates'), '20260924T235000/20260925T002000');
+});
+test('calendario: file .ics con ripetizione e avviso', () => {
+  const h = { ...ogniGiorno('a'), name: 'Acqua, tanta; davvero', type: 'qty', target: 2, unit: 'L' };
+  const ics = creaIcs(h, { ora: '09:00', durata: 5, avviso: 10, da: OGGI, url: 'https://x.it/', adesso: new Date(Date.UTC(2026, 8, 24, 8, 0, 0)) });
+  const righe = ics.split('\r\n');
+  uguale(['BEGIN:VCALENDAR', 'DTSTART:20260924T090000', 'DTEND:20260924T090500', 'RRULE:FREQ=DAILY', 'SUMMARY:Acqua\\, tanta\\; davvero', 'TRIGGER:-PT10M', 'DTSTAMP:20260924T080000Z', 'END:VCALENDAR']
+    .every(r => righe.includes(r)), true);
+  uguale(ics.endsWith('\r\n'), true);
+});
+test('calendario: senza avviso non c’è VALARM', () => {
+  uguale(creaIcs(ogniGiorno('a'), { ora: '09:00', durata: 5, avviso: null, da: OGGI, url: 'u' }).includes('VALARM'), false);
+});
+test('calendario: righe .ics al massimo 75 byte, anche con lettere accentate', () => {
+  const lunga = 'DESCRIPTION:' + 'Perché è più facile così: '.repeat(10);
+  const pezzi = piega(lunga).split('\r\n');
+  uguale(pezzi.every(r => new TextEncoder().encode(r).length <= 75), true);
+  uguale(pezzi.slice(1).every(r => r.startsWith(' ')), true);
+  uguale(pezzi.map((r, i) => i ? r.slice(1) : r).join(''), lunga, 'rimettendo insieme i pezzi si ottiene la riga originale');
+});
+test('calendario: testo protetto nel formato .ics', () => uguale(testoIcs('a,b;c\\d\ne'), 'a\\,b\\;c\\\\d\\ne'));
 
 esegui();
