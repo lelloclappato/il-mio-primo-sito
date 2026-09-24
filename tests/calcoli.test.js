@@ -415,4 +415,52 @@ test('google: nelle impostazioni solo valori sensati, mai un token', () => {
   uguale(r.settings.google, { riepilogo: false, calendarId: 'abc@group.calendar.google.com', usato: true });
 });
 
+// ---------- medaglie nuove ----------
+test('medaglie: ogni medaglia ha una categoria e un id unico', () => {
+  const r = simula(dati([ogniGiorno('a')]), OGGI);
+  uguale(r.medaglie.every(m => ['facile', 'media', 'difficile', 'strana'].includes(m.cat)), true);
+  uguale(new Set(r.medaglie.map(m => m.id)).size, r.medaglie.length);
+});
+test('medaglie: pi greco e doppio dell’obiettivo', () => {
+  const w = { id: 'w', name: 'Km', type: 'qty', target: 1.5, unit: 'km', step: 0.1, days: [0, 1, 2, 3, 4, 5, 6], created: k(5), diff: 2 };
+  const d = dati([w]); d.logs[k(2)] = { w: 3.14 };
+  const r = simula(d, OGGI);
+  uguale([medaglia(r, 'pi-greco'), medaglia(r, 'doppio')], [k(2), k(2)]);
+});
+test('medaglie: venerdì 17 perfetto (17 luglio 2026)', () => {
+  const OGGI2 = new Date(2026, 6, 20), k2 = n => keyOf(addDays(OGGI2, -n));
+  const a = { ...ogniGiorno('a'), created: k2(10) };
+  const r = simula({ version: 4, habits: [a], logs: { [k2(3)]: { a: 1 } }, journal: {}, settings: {} }, OGGI2);
+  uguale(medaglia(r, 'venerdi-17'), '2026-07-17');
+});
+test('medaglie: weekend da campione (sabato 19 e domenica 20 settembre)', () => {
+  const r = simula(dati([ogniGiorno('a', 10)], { a: [4, 5] }), OGGI);
+  uguale(medaglia(r, 'weekend'), k(4));
+});
+test('medaglie: arcobaleno di umori e settimana serena', () => {
+  const journal = {}; [1, 2, 3, 4, 5].forEach((m, i) => journal[k(20 + i)] = { mood: m });
+  for (let i = 1; i <= 7; i++) journal[k(i)] = { mood: 4 };
+  const r = simula(dati([ogniGiorno('a', 30)], {}, journal), OGGI);
+  uguale([medaglia(r, 'arcobaleno'), medaglia(r, 'serena'), medaglia(r, 'primo-umore')], [k(20), k(1), k(24)]);
+});
+test('medaglie: rimonta dopo una serie persa', () => {
+  // 8 giorni fatti (k 30-23), poi 2 saltati (salvagente + interruzione), poi 7 di fila (k 7-1)
+  const r = simula(dati([ogniGiorno('a', 30)], { a: [...giorniFatti(23, 30), ...giorniFatti(1, 7), 20, 19, 18, 17] }), OGGI);
+  uguale(!!medaglia(r, 'rimonta'), true);
+});
+test('medaglie: mese perfetto (agosto 2026 tutto fatto)', () => {
+  const OGGI3 = new Date(2026, 8, 2), k3 = n => keyOf(addDays(OGGI3, -n));
+  const logs = {}; for (let i = 1; i <= 40; i++) logs[k3(i)] = { a: 1 };
+  const a = { ...ogniGiorno('a'), created: k3(40) };
+  const r = simula({ version: 4, habits: [a], logs, journal: {}, settings: {} }, OGGI3);
+  uguale(r.medaglie.find(m => m.id === 'mese-perfetto').data, '2026-08-31');
+});
+test('medaglie: metronomo (stesso valore per 10 giorni)', () => {
+  const w = { id: 'w', name: 'Acqua', type: 'qty', target: 2, unit: 'L', step: 0.25, days: [0, 1, 2, 3, 4, 5, 6], created: k(12), diff: 2 };
+  const logs = {}; for (let i = 1; i <= 10; i++) logs[k(i)] = { w: 1.75 };
+  uguale(!!medaglia(simula({ version: 4, habits: [w], logs, journal: {}, settings: {} }, OGGI), 'metronomo'), true);
+  logs[k(5)] = { w: 2 };
+  uguale(medaglia(simula({ version: 4, habits: [w], logs, journal: {}, settings: {} }, OGGI), 'metronomo'), null);
+});
+
 esegui();

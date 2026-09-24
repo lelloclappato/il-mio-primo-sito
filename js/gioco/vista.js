@@ -9,7 +9,7 @@ import { ui } from '../stato.js';
 import { icon } from '../icone.js';
 import { PILLOLE } from '../frasi.js';
 import { CONFIG } from './config.js';
-import { simula } from './motore.js';
+import { simula, CATEGORIE } from './motore.js';
 import { svgPianta } from './pianta.js';
 import { lanciaCoriandoli } from './coriandoli.js';
 import { SPECIE, specieDa } from './specie.js';
@@ -78,8 +78,7 @@ export function viewTraguardi() {
   const r = simula(data);
   // le medaglie degli stadi prendono il nome dello stadio della pianta scelta
   r.medaglie.forEach(m => { const i = /^stadio-(\d)$/.exec(m.id); if (i) { m.nome = nomeStadio(+i[1]); m.desc = `La pianta diventa ${articolo(+i[1])}.`; } });
-  const sblocc = r.medaglie.filter(m => m.data).sort((a, b) => b.data.localeCompare(a.data));
-  const bloccate = r.medaglie.filter(m => !m.data);
+  const sblocc = r.medaglie.filter(m => m.data);
   const mese = MONTHS[new Date().getMonth()];
 
   let html = `<h1>Traguardi</h1>
@@ -114,9 +113,15 @@ export function viewTraguardi() {
   }
 
   // medaglie
-  html += `<h2>Medaglie · ${sblocc.length} di ${r.medaglie.length}</h2>
-    <div class="g-medaglie">${sblocc.map(m => `<div class="g-med on">${icon('award', 28)}<b>${esc(m.nome)}</b><span>${dataBreve(m.data)}</span></div>`).join('')}
-    ${bloccate.map(m => `<div class="g-med">${icon('lock', 22)}<b>${esc(m.nome)}</b><span>${esc(m.desc)}</span></div>`).join('')}</div>`;
+  // medaglie per categoria: in ogni gruppo prima quelle ottenute (le più recenti in cima), poi le altre
+  html += `<h2>Medaglie · ${sblocc.length} di ${r.medaglie.length}</h2>`;
+  for (const [cat, titolo] of CATEGORIE) {
+    const gruppo = r.medaglie.filter(m => m.cat === cat);
+    const prese = gruppo.filter(m => m.data).sort((a, b) => b.data.localeCompare(a.data)), altre = gruppo.filter(m => !m.data);
+    html += `<h3 class="g-cat">${titolo} <span class="muted">${prese.length}/${gruppo.length}</span></h3>
+      <div class="g-medaglie">${prese.map(m => `<div class="g-med on cat-${cat}">${icon('award', 28)}<b>${esc(m.nome)}</b><span>${esc(m.desc)}</span><span class="g-data">${dataBreve(m.data)}</span></div>`).join('')}
+      ${altre.map(m => `<div class="g-med">${icon('lock', 22)}<b>${esc(m.nome)}</b><span>${esc(m.desc)}</span></div>`).join('')}</div>`;
+  }
 
   html += `<h2>Festeggiamenti</h2><div class="card">
     <label class="switch-row"><input type="checkbox" id="g-coriandoli" ${data.gioco.coriandoli ? 'checked' : ''}><span>Coriandoli per medaglie e traguardi</span></label>

@@ -23,7 +23,7 @@ Indirizzo: https://lelloclappato.github.io/le-mie-abitudini/
   piano se salti dei giorni e si riprende quando ricominci; non muore mai e non perde mai lo stadio raggiunto.
   Scegli tra 6 piante (basilico, girasole, olivo, cactus, ciliegio giapponese, quercia), ognuna con il suo aspetto
   e 5 **curiosità** che si scoprono crescendo. Nome scelto da te, **salvagente** automatico (uno al mese),
-  **medaglie** e coriandoli (disattivabili)
+  oltre 40 **medaglie** (per iniziare, impegnative, leggendarie, strane e rare) e coriandoli (disattivabili)
 - Si possono segnare anche i giorni passati
 - **Backup** in un file JSON, con controllo completo del file prima di importarlo
 - **Installabile** sul telefono e funzionante **senza connessione**
