@@ -3,42 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gabriele De Bartolo</title>
+  <title>Le mie abitudini</title>
+  <meta name="description" content="Traccia le tue abitudini quotidiane, giorno dopo giorno.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Ciao, sono Gabriele</h1>
-    <p>Benvenuto nel mio primo sito personale.</p>
+  <header class="app-header">
+    <h1>Le mie abitudini</h1>
+    <p>Traccia le abitudini quotidiane e costruisci la tua streak.</p>
   </header>
 
-  <nav>
-    <a href="#about">Chi sono</a>
-    <a href="#projects">Progetti</a>
-    <a href="#contact">Contatti</a>
-  </nav>
-
   <main>
-    <section id="about">
-      <h2>Chi sono</h2>
-      <p>Sto imparando a programmare e a usare Git e GitHub per gestire i miei progetti.</p>
+    <section id="new-habit" aria-labelledby="new-habit-heading">
+      <h2 id="new-habit-heading" class="visually-hidden">Aggiungi un'abitudine</h2>
+      <form id="habit-form">
+        <label for="habit-name" class="visually-hidden">Nome abitudine</label>
+        <input
+          type="text"
+          id="habit-name"
+          name="habit-name"
+          placeholder="Es. Bere 2L d'acqua"
+          maxlength="60"
+          autocomplete="off"
+          required
+        >
+        <button type="submit">Aggiungi</button>
+      </form>
     </section>
 
-    <section id="projects">
-      <h2>Progetti</h2>
-      <ul>
-        <li>Questo sito personale</li>
-      </ul>
+    <section id="stats" aria-live="polite" aria-label="Statistiche">
+      <div class="stat-card">
+        <span class="stat-value" id="stat-total">0</span>
+        <span class="stat-label">Abitudini attive</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="stat-today">0%</span>
+        <span class="stat-label">Completate oggi</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="stat-streak">0</span>
+        <span class="stat-label">Streak migliore</span>
+      </div>
     </section>
 
-    <section id="contact">
-      <h2>Contatti</h2>
-      <p>Scrivimi via email per qualsiasi domanda.</p>
+    <section id="habit-list" aria-labelledby="habit-list-heading">
+      <h2 id="habit-list-heading" class="visually-hidden">Le tue abitudini</h2>
+      <ul id="habits" class="habit-list"></ul>
+      <p id="empty-state" class="empty-state">Non hai ancora aggiunto nessuna abitudine. Comincia qui sopra! 🌱</p>
     </section>
   </main>
 
   <footer>
-    <p>&copy; 2026 Gabriele De Bartolo</p>
+    <p>&copy; 2026 Gabriele De Bartolo &mdash; Le mie abitudini</p>
   </footer>
+
+  <script src="app.js"></script>
 </body>
 </html>
