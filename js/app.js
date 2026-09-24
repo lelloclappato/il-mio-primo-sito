@@ -15,6 +15,7 @@ import { programma, chiediPermesso } from './promemoria.js';
 import { openGoal, renderGoal, syncGoal, saveGoal, removeGoal, closeGoal, festeggiato, controllaObiettivo } from './obiettivo.js';
 import { openNome, saveNome, closeNome, nuoviEventi, mostraEventi } from './gioco/vista.js';
 import { openCal, closeCal, apriGoogle, scaricaIcs } from './calendario.js';
+import * as GV from './google/vista.js';
 
 // Da chiamare dopo ogni cambiamento ai dati: ridisegna e, se è successo qualcosa di bello
 // (obiettivo raggiunto, nuova medaglia, nuovo stadio della pianta), festeggia.
@@ -22,6 +23,7 @@ function dopoCambio() {
   const obiettivo = controllaObiettivo();
   render();
   mostraEventi(nuoviEventi(), obiettivo);
+  GV.riepilogoCambiato(ui.viewKey); // se attivo, aggiorna il riepilogo del giorno su Google Calendar
 }
 
 document.addEventListener('click', e => {
@@ -120,6 +122,10 @@ document.addEventListener('click', e => {
     case 'calClose': closeCal(); break;
     case 'calGoogle': apriGoogle(); break;
     case 'calIcs': scaricaIcs(); annuncia('File del calendario scaricato'); break;
+    // --- Google Calendar ---
+    case 'gCollega': GV.collega(); break;
+    case 'gScollega': GV.scollega(); break;
+    case 'gFascia': el.disabled = true; GV.creaFascia(el.dataset.ora).then(msg => { annuncia(msg); alert(msg); render(); }); break;
     // --- gioco della pianta ---
     case 'nomeApri': openNome(); break;
     case 'nomeChiudi': closeNome(); break;
@@ -149,6 +155,9 @@ document.addEventListener('change', async e => {
     document.querySelector(`input[name="g-giorni"][value="${e.target.value}"]`).focus();
     return;
   }
+  // --- Google Calendar ---
+  if (e.target.id === 'g-riepilogo') { GV.attivaRiepilogo(e.target.checked); return; }
+  if (e.target.id === 'g-durata') { GV.cambiaDurata(e.target.value); return; }
   // --- coriandoli sì/no ---
   if (e.target.id === 'g-coriandoli') { data.gioco.coriandoli = e.target.checked; save(); return; }
   // --- soglia della serie (100% o 80%) ---
@@ -205,6 +214,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 setupImport(dopoCambio);
+GV.setupGoogle(() => { if (!ui.form && !ui.goal && !ui.nome && !ui.cal) render(); });
 render();
 mostraEventi(nuoviEventi()); // benvenuto alla prima apertura, o novità arrivate nel frattempo
 programma();

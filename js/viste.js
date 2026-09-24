@@ -9,6 +9,7 @@ import { citazioneDelGiorno, fraseMotivazionale, PILLOLE } from './frasi.js';
 import { controllaObiettivo, daFesteggiare, prossimaProposta } from './obiettivo.js';
 import { cardPianta, viewTraguardi, rigaSalvagente, avvisoGiornoSalvato } from './gioco/vista.js';
 import { giorniSalvagente } from './calcoli.js';
+import { cardGoogle, cardImpegni } from './google/vista.js';
 import { ui } from './stato.js';
 import { icon } from './icone.js';
 import { hasPrimaImport } from './backup.js';
@@ -92,6 +93,7 @@ function viewOggi() {
   if (!isToday) html += avvisoGiornoSalvato(ui.viewKey);
   if (isToday && data.habits.length) html += cardFesta() + heroSerie(doneN, list.length, list.filter(h => !isDone(data, h, ui.viewKey)).map(h => h.name));
   else if (list.length) html += `<p class="muted num" style="margin:8px 0 4px">${doneN} di ${list.length} completate</p>`;
+  if (isToday) html += cardImpegni();
   if (data.habits.length) html += cardCitazione();
 
   if (!data.habits.length) {
@@ -395,7 +397,7 @@ function viewHabits() {
       <button class="ibtn" data-act="calOpen" data-id="${h.id}" aria-label="Aggiungi ${esc(h.name)} al calendario">${icon('calendar', 20)}</button>
       <button class="btn sec" data-act="edit" data-id="${h.id}" aria-label="Modifica ${esc(h.name)}">Modifica</button></div>`;
   }
-  html += cardSerie() + cardPromemoria() + cardInstalla();
+  html += cardSerie() + cardPromemoria() + cardGoogle() + cardInstalla();
   html += `<h2>Dati</h2><div class="card">
     <div class="muted">I dati restano solo su questo dispositivo. Fai un backup ogni tanto.</div>
     <div class="muted" style="margin-top:4px">Ultimo backup: ${data.lastBackup ? esc(data.lastBackup) : 'mai'}</div>

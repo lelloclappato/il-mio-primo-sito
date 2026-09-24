@@ -28,6 +28,8 @@ Indirizzo: https://lelloclappato.github.io/le-mie-abitudini/
 - **Promemoria** con notifica (con i limiti spiegati sotto) e numero di abitudini mancanti sull'icona
 - **Aggiungi al calendario**: per ogni abitudine un evento ricorrente negli stessi giorni, con link a Google Calendar
   oppure file `.ics` (Google, Apple, Outlook) con l'avviso incluso: il promemoria più affidabile
+- **Google Calendar** (facoltativo): impegni di oggi in "Oggi", spazi liberi con "Crea fascia" e riepilogo giornaliero
+  delle abitudini in un calendario a parte "Le mie abitudini". Per attivarlo segui [docs/google-calendar.md](docs/google-calendar.md)
 - Tema chiaro e scuro automatico, secondo le impostazioni del telefono
 
 ## Come si usa
@@ -96,6 +98,18 @@ l'albero arriva quando le abitudini sono diventate davvero tue.
 Dopo ogni modifica apri `tests/test.html`: alcuni test controllano i tempi di crescita e vanno aggiornati
 se cambi i valori (è normale: servono a vedere l'effetto delle modifiche).
 
+## Google Calendar: permessi e privacy
+
+Il collegamento usa Google Identity Services (flusso "token", tutto nel browser, nessun server) e chiede solo:
+
+- `calendar.events.readonly`: **leggere** gli eventi, per mostrare gli impegni di oggi (nessuna modifica possibile);
+- `calendar.app.created`: scrivere **solo** nel calendario "Le mie abitudini" creato dall'app, chiesto solo la prima volta
+  che crei una fascia o attivi il riepilogo.
+
+Nel codice c'è solo l'ID client pubblico (in `js/google/config.js`, vuoto finché non lo configuri), mai un segreto.
+Il token resta solo in memoria. Se l'accesso fallisce o lo rifiuti, l'app funziona normalmente.
+Istruzioni complete per la Google Cloud Console: [docs/google-calendar.md](docs/google-calendar.md).
+
 ## Promemoria: cosa aspettarsi
 
 Un'app web non può programmare una notifica a un orario preciso quando è chiusa, e le notifiche "push"
@@ -146,6 +160,8 @@ all'elenco `FILES` in `sw.js`, altrimenti non sarà disponibile senza connession
   - `calcoli.js`: giorni previsti, completamento, serie, percentuali, statistiche (funzioni "pure", testate)
   - `obiettivo.js`: obiettivo di serie, premio e festa al traguardo
   - `calendario.js`: pannello "Aggiungi al calendario"; `ics.js`: link di Google Calendar e file `.ics` (funzioni pure, testate)
+  - `google/`: collegamento a Google Calendar (`config.js` con l'ID client, `api.js` accesso e chiamate,
+    `fasce.js` spazi liberi e riepilogo (puri, testati), `vista.js` schermate)
   - `frasi.js`: citazioni del giorno (con autore verificato), frasi di incoraggiamento, pillole di saggezza
   - `gioco/`: la pianta
     - `config.js`: **tutte le regole e i numeri del gioco**
@@ -162,6 +178,7 @@ all'elenco `FILES` in `sw.js`, altrimenti non sarà disponibile senza connession
   - `stato.js`, `utili.js`: stato dell'interfaccia e piccole funzioni comuni
 - `sw.js`, `manifest.json`, `icon-*.png`: installazione e funzionamento offline
 - `tests/`: i test dei calcoli (`test.html` da aprire nel browser)
+- `docs/`: guide (non pubblicate sul sito), per esempio come configurare Google Calendar
 - `.github/workflows/deploy-pages.yml`: pubblicazione su GitHub Pages
 
 ## Colori e contrasto

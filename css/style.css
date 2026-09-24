@@ -415,3 +415,15 @@ i.salv { box-shadow: inset 0 0 0 2px var(--gold); }
 .coriandoli i { position: absolute; top: -12px; width: 8px; height: 12px; border-radius: 2px; opacity: .9;
   animation-name: cade; animation-timing-function: cubic-bezier(.3, .6, .6, 1); animation-fill-mode: forwards; }
 @keyframes cade { to { transform: translate(var(--deriva), 105vh) rotate(var(--giro)); opacity: .7; } }
+
+/* ---------- Google Calendar ---------- */
+.ico.inline.ok { color: var(--done); }
+.g-msg { margin: 10px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--accent-soft); }
+.g-impegni { list-style: none; margin: 8px 0 0; padding: 0; }
+.g-impegni li { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+.g-impegni li:last-child { border-bottom: 0; }
+.g-impegni .num { font-weight: 600; margin-right: 6px; }
+.g-fasce { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.g-fasce label { margin: 0 0 6px; }
+.g-fascia { margin-top: 8px; }
+.g-ricollega { margin: 10px 0; }

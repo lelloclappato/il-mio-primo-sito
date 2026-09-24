@@ -12,7 +12,8 @@
 //               diff: 1 | 2 | 3 }],                            // difficoltà: facile, media, difficile
 //   logs:    { "AAAA-MM-GG": { idAbitudine: valore } },      // solo i giorni con qualcosa di segnato
 //   journal: { "AAAA-MM-GG": { mood: 1..5, note: "testo" } }, // nota e umore del giorno (facoltativi)
-//   settings: { reminder: { on: false, time: "20:30" }, soglia: 1 },  // soglia: 1 = tutte, 0.8 = circa l'80%
+//   settings: { reminder: { on: false, time: "20:30" }, soglia: 1,  // soglia: 1 = tutte, 0.8 = circa l'80%
+//               google: { riepilogo: false, calendarId: "", usato: false } },  // Google Calendar (nessun token qui!)
 //   obiettivo: null | { giorni: 21, premio: "una cena fuori", creato: "AAAA-MM-GG" },  // obiettivo di serie in corso
 //   traguardi: [{ giorni, premio, raggiunto: "AAAA-MM-GG", pillola: numero | null, visto: true | false }],
 //   gioco: { nome: "", nomeChiesto: false, coriandoli: true, medaglieViste: [id], stadioVisto: 0, iniziato: false }
@@ -24,7 +25,7 @@ export const CURRENT_VERSION = 4;
 const isData = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
 
 export function defaultSettings() {
-  return { reminder: { on: false, time: '20:30' }, soglia: 1 };
+  return { reminder: { on: false, time: '20:30' }, soglia: 1, google: { riepilogo: false, calendarId: '', usato: false } };
 }
 
 // Porta un oggetto dati (versione 1 o 2) al formato attuale. Non modifica l'originale.
@@ -47,12 +48,22 @@ export function upgrade(d) {
   d.settings = { ...s, reminder: {
     on: r.on === true,
     time: typeof r.time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(r.time) ? r.time : defaultSettings().reminder.time
-  }, soglia: s.soglia === 0.8 ? 0.8 : 1 };
+  }, soglia: s.soglia === 0.8 ? 0.8 : 1, google: pulisciGoogle(s.google) };
   d.obiettivo = pulisciObiettivo(d.obiettivo);
   d.traguardi = Array.isArray(d.traguardi) ? d.traguardi.map(pulisciTraguardo).filter(Boolean) : [];
   if (d.lastBackup === undefined) d.lastBackup = null;
   d.version = CURRENT_VERSION;
   return d;
+}
+
+// Impostazioni di Google Calendar. Il token di accesso NON è mai qui: resta solo in memoria.
+function pulisciGoogle(g) {
+  g = g && typeof g === 'object' ? g : {};
+  return {
+    riepilogo: g.riepilogo === true,
+    calendarId: typeof g.calendarId === 'string' ? g.calendarId.slice(0, 300) : '',
+    usato: g.usato === true
+  };
 }
 
 // Obiettivo di serie: da 2 a 365 giorni, premio facoltativo (massimo 60 caratteri). Altrimenti null.

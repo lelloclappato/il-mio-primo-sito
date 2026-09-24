@@ -9,6 +9,7 @@ import {
 import { upgrade } from '../js/migrazione.js';
 import { controllaBackup } from '../js/validazione.js';
 import { simula, moltiplicatore, stadioDaPunti } from '../js/gioco/motore.js';
+import { normalizzaEvento, spaziLiberi, daQuando, riepilogo as riepilogoGoogle, idRiepilogo } from '../js/google/fasce.js';
 import { regolaRipetizione, primoGiorno as primoGiornoCal, dataOra, linkGoogle, creaIcs, testoIcs, piega } from '../js/ics.js';
 import { serieDal, progressoObiettivo, giorniSalvagente } from '../js/calcoli.js';
 import { fraseMotivazionale, momento, elenco, citazioneDelGiorno, CITAZIONI } from '../js/frasi.js';
@@ -379,5 +380,39 @@ test('calendario: righe .ics al massimo 75 byte, anche con lettere accentate', (
   uguale(pezzi.map((r, i) => i ? r.slice(1) : r).join(''), lunga, 'rimettendo insieme i pezzi si ottiene la riga originale');
 });
 test('calendario: testo protetto nel formato .ics', () => uguale(testoIcs('a,b;c\\d\ne'), 'a\\,b\\;c\\\\d\\ne'));
+
+// ---------- Google Calendar (calcoli senza collegamento) ----------
+const evento = (da, a, titolo = 'x') => ({ summary: titolo, start: { dateTime: `${k(0)}T${da}:00` }, end: { dateTime: `${k(0)}T${a}:00` } });
+test('google: evento trasformato in minuti del giorno; "tutto il giorno" a parte', () => {
+  uguale(normalizzaEvento(evento('09:30', '10:15', 'Dentista'), k(0)), { inizio: 570, fine: 615, titolo: 'Dentista' });
+  uguale(normalizzaEvento({ summary: 'Ferie', start: { date: k(0) }, end: { date: k(-1) } }, k(0)), { tuttoIlGiorno: true, titolo: 'Ferie' });
+});
+test('google: spazi liberi tra gli impegni', () => {
+  const ev = [evento('09:00', '10:00'), evento('09:30', '11:00'), evento('12:00', '12:20'), evento('18:00', '21:45')].map(e => normalizzaEvento(e, k(0)));
+  uguale(spaziLiberi(ev, { da: 8 * 60, a: 22 * 60, durata: 30 }), [
+    { inizio: '08:00', fine: '09:00', minuti: 60 }, { inizio: '11:00', fine: '12:00', minuti: 60 }, { inizio: '12:20', fine: '18:00', minuti: 340 }]);
+  uguale(spaziLiberi(ev, { da: 8 * 60, a: 22 * 60, durata: 90 }).length, 1);
+});
+test('google: si cerca da adesso (arrotondato al quarto d’ora), non prima delle 7', () => {
+  uguale([daQuando(new Date(2026, 8, 24, 10, 1), '07:00'), daQuando(new Date(2026, 8, 24, 5, 0), '07:00')], [615, 420]);
+});
+test('google: testo del riepilogo giornaliero', () => {
+  const a = { ...ogniGiorno('a'), name: 'Lettura' }, b = { ...ogniGiorno('b'), name: 'Yoga' };
+  const d = dati([a, b], { a: [0, 1], b: [1] }, { [k(0)]: { mood: 4 } });
+  const r = riepilogoGoogle(d, k(0), OGGI);
+  uguale(r.titolo, 'Abitudini 1/2');
+  uguale(r.descrizione.split('\n').slice(0, 2), ['✓ Lettura', '○ Yoga']);
+  uguale(r.descrizione.includes('Umore: 4/5'), true);
+  uguale(riepilogoGoogle(d, k(1), OGGI).titolo, 'Abitudini 2/2 ✓ giornata perfetta');
+  uguale(riepilogoGoogle(dati([{ ...a, days: [0] }]), k(0), OGGI), null, 'giovedì non previsto: nessun riepilogo');
+});
+test('google: ID del riepilogo valido per Google (solo a-v e cifre)', () => {
+  uguale(idRiepilogo('2026-09-24'), 'abitudini20260924');
+  uguale(/^[a-v0-9]{5,1024}$/.test(idRiepilogo('2026-09-24')), true);
+});
+test('google: nelle impostazioni solo valori sensati, mai un token', () => {
+  const r = upgrade({ version: 4, habits: [], logs: {}, settings: { google: { riepilogo: 'sì', calendarId: 'abc@group.calendar.google.com', usato: true, token: 'segreto' } } });
+  uguale(r.settings.google, { riepilogo: false, calendarId: 'abc@group.calendar.google.com', usato: true });
+});
 
 esegui();
