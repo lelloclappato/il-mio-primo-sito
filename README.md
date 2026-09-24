@@ -68,16 +68,24 @@ delle abitudini, quindi cambiando un valore la pianta si aggiorna subito (anche 
 | Bonus serie salva (100% o 80%) | +10 |
 | Bonus giornata perfetta (tutte) | +15 (in aggiunta) |
 | Moltiplicatore della serie | +2% al giorno, massimo +30% |
-| Stadi | seme 0 · germoglio 150 · piantina 600 · pianta 1.500 · albero 3.500 punti |
+| Stadi | seme 0 · germoglio 300 · piantina 1.100 · pianta 2.800 · albero 5.400 punti |
 | Salute | parte da 80; +10 serie salva, +15 giornata perfetta; −10 giorno non riuscito (−5 se fatta almeno metà); minimo 10 |
 | Aspetto | sotto 60 colori spenti, sotto 35 foglie cadute |
 | Salvagente | 1 al mese, scatta da solo nel primo giorno mancato se c'è una serie in corso |
 
-Con 4 abitudini medie e sempre giornate perfette: germoglio in 3 giorni, piantina in 9, pianta in 20, albero in 43.
-Con giornate all'80% servono circa il doppio dei giorni.
+Tempi di crescita con questi valori:
+
+| Situazione | Germoglio | Piantina | Pianta | Albero |
+|---|---|---|---|---|
+| 4 abitudini medie, giornate perfette | 5 giorni | 15 | 35 | 66 |
+| 3 abitudini medie, giornate perfette | 6 | 17 | 41 | 77 |
+| 4 abitudini, 3 su 4 ogni giorno (serie all'80%) | 7 | 23 | 56 | 106 |
+
+66 giorni è il tempo medio perché un'abitudine diventi automatica (studio di Phillippa Lally, UCL, 2009):
+l'albero arriva quando le abitudini sono diventate davvero tue.
 
 **Come bilanciare:**
-- La pianta cresce **troppo in fretta**? Alza i punti degli stadi (es. albero a 5.000) oppure abbassa i bonus.
+- La pianta cresce **troppo in fretta** o **troppo piano**? Cambia i punti degli stadi (es. albero a 7.000 o a 4.000) oppure i bonus.
 - Vuoi premiare di più le **giornate perfette**? Alza `bonusGiornataPerfetta`.
 - La salute **cala troppo** dopo un giorno storto? Abbassa `calo` o alza `iniziale`.
 - La pianta **si riprende troppo piano**? Alza `serieSalva` e `giornataPerfetta` nella sezione `salute`.

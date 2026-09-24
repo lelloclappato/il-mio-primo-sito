@@ -3,7 +3,8 @@
 //
 // Esempio con 4 abitudini "medie" e sempre giornate perfette:
 //   40 (abitudini) + 10 (serie salva) + 15 (giornata perfetta) = 65 punti al giorno,
-//   fino a ~85 con il moltiplicatore della serie → albero in 43 giorni (germoglio 3, piantina 9, pianta 20).
+//   fino a ~85 con il moltiplicatore della serie → albero in 66 giorni (germoglio 5, piantina 15, pianta 35):
+//   66 giorni è il tempo medio perché un'abitudine diventi automatica (Lally, UCL, 2009).
 
 export const CONFIG = {
   // punti per ogni abitudine completata, secondo la difficoltà scelta
@@ -19,10 +20,10 @@ export const CONFIG = {
   // stadi della pianta e punti necessari (la crescita non torna mai indietro)
   stadi: [
     { nome: 'Seme', articolo: 'un seme', punti: 0 },
-    { nome: 'Germoglio', articolo: 'un germoglio', punti: 150 },
-    { nome: 'Piantina', articolo: 'una piantina', punti: 600 },
-    { nome: 'Pianta', articolo: 'una pianta', punti: 1500 },
-    { nome: 'Albero', articolo: 'un albero', punti: 3500 }
+    { nome: 'Germoglio', articolo: 'un germoglio', punti: 300 },
+    { nome: 'Piantina', articolo: 'una piantina', punti: 1100 },
+    { nome: 'Pianta', articolo: 'una pianta', punti: 2800 },
+    { nome: 'Albero', articolo: 'un albero', punti: 5400 }
   ],
 
   // salute della pianta, da 0 a 100 (separata dalla crescita)

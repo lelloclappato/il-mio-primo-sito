@@ -276,14 +276,15 @@ test('citazione del giorno: cambia ogni giorno e ha sempre un autore', () => {
 const giorniFatti = (da, a) => { const l = []; for (let i = da; i <= a; i++) l.push(i); return l; };
 const medaglia = (r, id) => r.medaglie.find(m => m.id === id).data;
 test('pianta: moltiplicatore della serie con tetto', () => uguale([moltiplicatore(0), moltiplicatore(10), moltiplicatore(15), moltiplicatore(100)], [1, 1.2, 1.3, 1.3]));
-test('pianta: stadi', () => uguale([0, 149, 150, 600, 1499, 3500, 9999].map(stadioDaPunti), [0, 0, 1, 2, 2, 4, 4]));
-test('pianta: 4 abitudini medie, giorni perfetti → albero al 43° giorno', () => {
-  const hs = ['a', 'b', 'c', 'd'].map(id => ogniGiorno(id, 60));
+test('pianta: stadi', () => uguale([0, 299, 300, 1100, 2799, 5400, 9999].map(stadioDaPunti), [0, 0, 1, 2, 2, 4, 4]));
+test('pianta: 4 abitudini medie, giorni perfetti → albero al 66° giorno', () => {
+  const hs = ['a', 'b', 'c', 'd'].map(id => ogniGiorno(id, 90));
   const fino = n => dati(hs, Object.fromEntries(hs.map(h => [h.id, giorniFatti(1, n)])));
   const crea = n => { const d = fino(n); d.habits.forEach(h => h.created = k(n)); return d; };
-  uguale(simula(crea(42), OGGI).stadio, 3, 'dopo 42 giorni è ancora "Pianta"');
-  uguale(simula(crea(43), OGGI).nomeStadio, 'Albero');
-  uguale([simula(crea(3), OGGI).stadio, simula(crea(2), OGGI).stadio], [1, 0], 'germoglio al 3° giorno');
+  uguale(simula(crea(65), OGGI).stadio, 3, 'dopo 65 giorni è ancora "Pianta"');
+  uguale(simula(crea(66), OGGI).nomeStadio, 'Albero');
+  uguale([simula(crea(5), OGGI).stadio, simula(crea(4), OGGI).stadio], [1, 0], 'germoglio al 5° giorno');
+  uguale([simula(crea(15), OGGI).stadio, simula(crea(35), OGGI).stadio], [2, 3], 'piantina al 15°, pianta al 35°');
 });
 test('pianta: la difficoltà cambia i punti', () => {
   const h = { ...ogniGiorno('a', 1), diff: 3 };
