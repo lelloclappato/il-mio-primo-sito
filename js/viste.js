@@ -3,12 +3,15 @@
 // render() lo inserisce nella pagina. I pulsanti hanno un attributo data-act
 // che dice cosa fare al tocco: lo legge app.js.
 import { keyOf, todayKey, dateOf, addDays, weekStart, fmt, esc, DAYS_FULL, MONTHS, APP_VERSION } from './utili.js';
-import { data, getVal, migrationNote } from './dati.js';
+import { data, getVal, getJournal, migrationNote } from './dati.js';
 import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, daysLabel } from './calcoli.js';
 import { ui } from './stato.js';
 import { icon } from './icone.js';
 
 const TABS = [['oggi', 'check', 'Oggi'], ['stat', 'chart', 'Statistiche'], ['hab', 'settings', 'Abitudini']];
+
+// i 5 livelli dell'umore: il numero (1-5) è quello che viene salvato
+export const UMORI = ['Pessima', 'Giù', 'Così così', 'Bene', 'Ottima'];
 
 export function render() {
   // render() sostituisce tutto l'HTML: ci segniamo quale pulsante aveva il focus
@@ -87,7 +90,25 @@ function viewOggi() {
   }
   for (const h of list) html += cardOggi(h);
   if (hidden > 0 && list.length) html += `<p class="muted" style="text-align:center">${hidden} ${hidden === 1 ? 'abitudine non prevista' : 'abitudini non previste'} in questo giorno</p>`;
+  if (data.habits.length) html += cardDiario();
   return html;
+}
+
+// Nota e umore del giorno mostrato. Entrambi facoltativi.
+// La nota si salva da sola mentre scrivi (vedi app.js), non serve un pulsante.
+function cardDiario() {
+  const g = getJournal(ui.viewKey);
+  const moods = UMORI.map((l, i) => {
+    const v = i + 1, on = g.mood === v;
+    return `<button class="mood ${on ? 'on' : ''}" data-act="mood" data-v="${v}" aria-pressed="${on}">${icon('mood' + v, 28)}<span>${l}</span></button>`;
+  }).join('');
+  return `<section class="card diario" aria-labelledby="diario-t">
+    <h2 id="diario-t" style="margin:0 0 2px">Com’è andata?</h2>
+    <div class="muted small">Facoltativo: umore e una nota per ricordare la giornata.</div>
+    <div class="moods" role="group" aria-label="Umore della giornata">${moods}</div>
+    <label for="nota-giorno" class="sr-only">Nota del giorno</label>
+    <textarea id="nota-giorno" rows="3" maxlength="500" placeholder="Scrivi una nota (si salva da sola)">${esc(g.note || '')}</textarea>
+  </section>`;
 }
 
 // Riquadro in cima a "Oggi": la serie complessiva (giorni di fila con tutte le abitudini previste

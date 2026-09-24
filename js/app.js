@@ -4,10 +4,10 @@
 // ("delega degli eventi"): quando tocchi qualcosa, cerca l'elemento più vicino con data-act
 // e in base al suo valore decide cosa fare. Così funziona anche con l'HTML ridisegnato da render().
 import { todayKey, keyOf, dateOf, addDays, fmt, uid } from './utili.js';
-import { data, save, getVal, setVal, clearMigrationNote } from './dati.js';
+import { data, save, getVal, setVal, getJournal, setJournal, clearMigrationNote } from './dati.js';
 import { isDone } from './calcoli.js';
 import { ui } from './stato.js';
-import { render, annuncia } from './viste.js';
+import { render, annuncia, UMORI } from './viste.js';
 import { openForm, renderForm, syncForm, closeForm } from './modulo.js';
 import { exportBackup, askImport, setupImport } from './backup.js';
 
@@ -29,6 +29,13 @@ document.addEventListener('click', e => {
     }
     case 'goToday': ui.viewKey = todayKey(); render(); break;
     case 'dismissNote': clearMigrationNote(); render(); break;
+    // --- diario ---
+    case 'mood': { // toccare l'umore già scelto lo toglie
+      const v = Number(el.dataset.v), nuovo = getJournal(ui.viewKey).mood === v ? null : v;
+      setJournal(ui.viewKey, 'mood', nuovo); render();
+      annuncia(nuovo ? `Umore: ${UMORI[v - 1]}` : 'Umore tolto');
+      break;
+    }
     // --- segnare le abitudini ---
     case 'toggle': // se è fatta la si toglie, altrimenti la si segna
       setVal(id, ui.viewKey, isDone(data, h, ui.viewKey) ? 0 : 1); render();
@@ -92,6 +99,25 @@ document.addEventListener('change', e => {
     document.querySelector(`input[name="f-type"][value="${ui.form.type}"]`).focus();
   }
 });
+
+// ---------- nota del giorno ----------
+// Si salva mezzo secondo dopo che smetti di scrivere ("debounce": non a ogni lettera),
+// e subito quando esci dal campo o dall'app, così non si perde niente.
+let timerNota = null, giornoNota = null;
+function salvaNota() {
+  clearTimeout(timerNota); timerNota = null;
+  const el = document.getElementById('nota-giorno');
+  if (!el || giornoNota === null) return;
+  setJournal(giornoNota, 'note', el.value.trim() ? el.value : '');
+  giornoNota = null;
+}
+document.addEventListener('input', e => {
+  if (e.target.id !== 'nota-giorno') return;
+  giornoNota = ui.viewKey; // il giorno a cui appartiene la nota, anche se poi si cambia pagina
+  clearTimeout(timerNota); timerNota = setTimeout(salvaNota, 500);
+});
+document.addEventListener('focusout', e => { if (e.target.id === 'nota-giorno') salvaNota(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') salvaNota(); });
 
 // tasto Esc: chiude il pannello
 document.addEventListener('keydown', e => {
