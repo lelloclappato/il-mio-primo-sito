@@ -1,6 +1,12 @@
 // Rete prima, cache come riserva: gli aggiornamenti arrivano alla prima apertura con internet.
 const CACHE = 'abitudini-cache';
-const FILES = ['./', './index.html', './app.js', './manifest.json', './icon-192.png', './icon-512.png'];
+// file salvati subito all'installazione, così l'app si apre anche senza connessione
+const FILES = [
+  './', './index.html', './manifest.json', './icon-192.png', './icon-512.png',
+  './css/style.css',
+  './js/app.js', './js/utili.js', './js/dati.js', './js/calcoli.js', './js/stato.js',
+  './js/viste.js', './js/modulo.js', './js/backup.js'
+];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
 self.addEventListener('fetch', e => {

@@ -13,7 +13,26 @@ App per tracciare le abitudini di ogni giorno, installabile sul telefono (PWA). 
 
 ## Struttura
 
-- `index.html`: pagina e stile
-- `app.js`: logica
+- `index.html`: la pagina (solo lo scheletro)
+- `css/style.css`: lo stile, con i colori per tema chiaro e scuro
+- `js/`: la logica, divisa in moduli JavaScript (`import` / `export`), senza strumenti di compilazione
+  - `app.js`: punto di partenza, collega i tocchi alle azioni
+  - `dati.js`: lettura e salvataggio nel browser
+  - `calcoli.js`: giorni previsti, completamento, serie, percentuali
+  - `viste.js`: le schermate Oggi, Statistiche, Abitudini
+  - `modulo.js`: il pannello per creare e modificare un'abitudine
+  - `backup.js`: esporta e importa il file JSON
+  - `stato.js`, `utili.js`: stato dell'interfaccia e piccole funzioni comuni
 - `sw.js`, `manifest.json`, `icon-*.png`: installazione e funzionamento offline
-- `.github/workflows/deploy-pages.yml`: pubblicazione su GitHub Pages ad ogni push su `main`
+- `.github/workflows/deploy-pages.yml`: pubblicazione su GitHub Pages a ogni push su `main`
+
+## Provarla sul computer
+
+I moduli JavaScript non funzionano aprendo `index.html` con un doppio clic: serve un piccolo server locale.
+Dalla cartella del progetto:
+
+```
+python3 -m http.server 8000
+```
+
+poi apri http://localhost:8000 nel browser.
