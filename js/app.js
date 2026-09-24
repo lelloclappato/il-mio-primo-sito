@@ -12,7 +12,16 @@ import { openForm, renderForm, syncForm, closeForm } from './modulo.js';
 import { exportBackup, askImport, setupImport, annullaImport } from './backup.js';
 import { setupPWA, installa } from './pwa.js';
 import { programma, chiediPermesso } from './promemoria.js';
-import { openGoal, renderGoal, syncGoal, saveGoal, removeGoal, closeGoal, festeggiato } from './obiettivo.js';
+import { openGoal, renderGoal, syncGoal, saveGoal, removeGoal, closeGoal, festeggiato, controllaObiettivo } from './obiettivo.js';
+import { openNome, saveNome, closeNome, nuoviEventi, mostraEventi } from './gioco/vista.js';
+
+// Da chiamare dopo ogni cambiamento ai dati: ridisegna e, se è successo qualcosa di bello
+// (obiettivo raggiunto, nuova medaglia, nuovo stadio della pianta), festeggia.
+function dopoCambio() {
+  const obiettivo = controllaObiettivo();
+  render();
+  mostraEventi(nuoviEventi(), obiettivo);
+}
 
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
@@ -21,7 +30,7 @@ document.addEventListener('click', e => {
   const h = id ? data.habits.find(x => x.id === id) : null;
   if (el.tagName === 'A') e.preventDefault();
   // tocco sullo sfondo scuro del pannello (non sul pannello stesso): chiudi
-  if (act === 'closeBg') { if (e.target === el) { if (ui.goal) closeGoal(); else closeForm(); } return; }
+  if (act === 'closeBg') { if (e.target === el) { if (ui.goal) closeGoal(); else if (ui.nome) closeNome(); else closeForm(); } return; }
   switch (act) {
     // --- navigazione ---
     case 'tab': ui.tab = id; render(); window.scrollTo(0, 0); break;
@@ -41,16 +50,16 @@ document.addEventListener('click', e => {
     }
     // --- segnare le abitudini ---
     case 'toggle': // se è fatta la si toglie, altrimenti la si segna
-      setVal(id, ui.viewKey, isDone(data, h, ui.viewKey) ? 0 : 1); render();
+      setVal(id, ui.viewKey, isDone(data, h, ui.viewKey) ? 0 : 1); dopoCambio();
       annuncia(`${h.name}: ${isDone(data, h, ui.viewKey) ? 'fatta' : 'da fare'}`);
       break;
     case 'inc': case 'dec':
-      setVal(id, ui.viewKey, getVal(id, ui.viewKey) + (act === 'inc' ? h.step : -h.step)); render();
+      setVal(id, ui.viewKey, getVal(id, ui.viewKey) + (act === 'inc' ? h.step : -h.step)); dopoCambio();
       annuncia(`${h.name}: ${fmt(getVal(id, ui.viewKey))} di ${fmt(h.target)} ${h.unit}`);
       break;
     case 'edit-val': {
       const r = prompt(`${h.name}: quanto hai fatto? (${h.unit})`, fmt(getVal(id, ui.viewKey)));
-      if (r !== null) { const n = parseFloat(r.replace(',', '.')); if (!isNaN(n) && n >= 0) { setVal(id, ui.viewKey, n); render(); annuncia(`${h.name}: ${fmt(n)} di ${fmt(h.target)} ${h.unit}`); } }
+      if (r !== null) { const n = parseFloat(r.replace(',', '.')); if (!isNaN(n) && n >= 0) { setVal(id, ui.viewKey, n); dopoCambio(); annuncia(`${h.name}: ${fmt(n)} di ${fmt(h.target)} ${h.unit}`); } }
       break;
     }
     // --- pannello crea/modifica ---
@@ -77,7 +86,7 @@ document.addEventListener('click', e => {
       f.name = f.name.trim();
       if (f.id) { const i = data.habits.findIndex(x => x.id === f.id); data.habits[i] = f; }
       else { f.id = uid(); data.habits.push(f); }
-      save(); closeForm(); render(); annuncia(`Abitudine “${f.name}” salvata`); break;
+      save(); closeForm(); dopoCambio(); annuncia(`Abitudine “${f.name}” salvata`); break;
     }
     case 'delete':
       if (confirm(`Eliminare “${ui.form.name}” e tutto il suo storico?`)) {
@@ -105,6 +114,12 @@ document.addEventListener('click', e => {
       break;
     case 'festaOk': festeggiato(); render(); break;
     case 'festaNuovo': festeggiato(); render(); openGoal(); break;
+    // --- gioco della pianta ---
+    case 'nomeApri': openNome(); break;
+    case 'nomeChiudi': closeNome(); break;
+    case 'nomeSalva': saveNome(); closeNome(); render(); annuncia('Nome della pianta salvato'); break;
+    case 'eventoVedi': document.getElementById('evento').innerHTML = ''; ui.tab = 'gioco'; render(); window.scrollTo(0, 0); break;
+    case 'eventoChiudi': document.getElementById('evento').innerHTML = ''; break;
   }
 });
 
@@ -128,9 +143,11 @@ document.addEventListener('change', async e => {
     document.querySelector(`input[name="g-giorni"][value="${e.target.value}"]`).focus();
     return;
   }
+  // --- coriandoli sì/no ---
+  if (e.target.id === 'g-coriandoli') { data.gioco.coriandoli = e.target.checked; save(); return; }
   // --- soglia della serie (100% o 80%) ---
   if (e.target.name === 'soglia') {
-    data.settings.soglia = Number(e.target.value); save(); render();
+    data.settings.soglia = Number(e.target.value); save(); dopoCambio();
     document.querySelector(`input[name="soglia"][value="${e.target.value}"]`).focus();
     annuncia(e.target.value === '1' ? 'Per la serie servono tutte le abitudini' : 'Per la serie basta circa l’80% delle abitudini');
     return;
@@ -170,17 +187,19 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && ui.form) closeForm();
   else if (e.key === 'Escape' && ui.goal) closeGoal();
+  else if (e.key === 'Escape' && ui.nome) closeNome();
 });
 
 // quando si torna all'app (es. il giorno dopo), ridisegna per aggiornare le date
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') programma(); // il timer del promemoria può essere stato sospeso
   if (document.visibilityState === 'visible' && !ui.form && ui.viewKey > todayKey()) { ui.viewKey = todayKey(); }
-  if (document.visibilityState === 'visible' && !ui.form) render();
+  if (document.visibilityState === 'visible' && !ui.form && !ui.goal && !ui.nome) render();
 });
 
-setupImport();
+setupImport(dopoCambio);
 render();
+mostraEventi(nuoviEventi()); // benvenuto alla prima apertura, o novità arrivate nel frattempo
 programma();
 // service worker (uso senza connessione), aggiornamenti e installazione: vedi pwa.js
 setupPWA(() => { if (ui.tab === 'hab' && !ui.form) render(); });

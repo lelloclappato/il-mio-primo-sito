@@ -5,7 +5,7 @@ App per tracciare le abitudini di ogni giorno, pensata per il telefono e install
 
 Indirizzo: https://lelloclappato.github.io/le-mie-abitudini/
 
-## Cosa fa (v1.2)
+## Cosa fa (v1.3)
 
 - Abitudini **Sì / No** (es. palestra) e **a quantità** con obiettivo (es. acqua in litri, sonno in ore)
 - Giorni della settimana a scelta per ogni abitudine: nei giorni non previsti non compare
@@ -19,6 +19,9 @@ Indirizzo: https://lelloclappato.github.io/le-mie-abitudini/
 - **Nota e umore** del giorno (facoltativi, 5 livelli)
 - **Statistiche**: griglia delle ultime 20 settimane, percentuali della settimana e del mese, serie migliore,
   abitudine più costante, confronto tra umore e abitudini
+- **La pianta**: cresce con le abitudini completate (più in fretta nelle giornate perfette), ha una salute che cala
+  piano se salti dei giorni e si riprende quando ricominci; non muore mai e non perde mai lo stadio raggiunto.
+  Nome scelto da te, **salvagente** automatico (uno al mese), **medaglie** e coriandoli (disattivabili)
 - Si possono segnare anche i giorni passati
 - **Backup** in un file JSON, con controllo completo del file prima di importarlo
 - **Installabile** sul telefono e funzionante **senza connessione**
@@ -30,7 +33,8 @@ Indirizzo: https://lelloclappato.github.io/le-mie-abitudini/
 - **Oggi**: le abitudini previste per il giorno. Tocca il cerchio per segnare quelle Sì/No, oppure − e + per le quantità
   (toccando il numero puoi scriverlo a mano). Le frecce cambiano giorno.
 - **Statistiche**: serie attuale, percentuali e la griglia colorata (verde = fatta, corallo = saltata, grigio = non prevista).
-- **Abitudini**: crea, modifica o elimina le abitudini; regola della serie (100% o 80%); promemoria; installazione;
+- **Traguardi**: la pianta in grande, il salvagente del mese, gli obiettivi raggiunti e le medaglie.
+- **Abitudini**: crea, modifica o elimina le abitudini (con la difficoltà: facile, media, difficile); regola della serie (100% o 80%); promemoria; installazione;
   esporta e importa il backup.
 - **Obiettivo di serie**: in "Oggi", nel riquadro della serie, tocca **Scegli un obiettivo di serie**. I giorni si contano
   da quando lo imposti; se la serie si interrompe, l'obiettivo resta e il conteggio riparte.
@@ -52,6 +56,35 @@ Se non fai un backup da più di 30 giorni, l'app te lo ricorda.
 
 I dati delle versioni precedenti dell'app (`abitudini.v1`, `habits-tracker-v1`) vengono spostati automaticamente
 nella chiave nuova al primo avvio, e restano nel browser come copia di sicurezza.
+
+## La pianta: regole e come bilanciarle
+
+Tutti i numeri sono in **`js/gioco/config.js`**. I punti non vengono salvati: si ricalcolano ogni volta dalla storia
+delle abitudini, quindi cambiando un valore la pianta si aggiorna subito (anche per i giorni passati).
+
+| Regola | Valore iniziale |
+|---|---|
+| Punti per abitudine completata | facile 5 · media 10 · difficile 15 |
+| Bonus serie salva (100% o 80%) | +10 |
+| Bonus giornata perfetta (tutte) | +15 (in aggiunta) |
+| Moltiplicatore della serie | +2% al giorno, massimo +30% |
+| Stadi | seme 0 · germoglio 150 · piantina 600 · pianta 1.500 · albero 3.500 punti |
+| Salute | parte da 80; +10 serie salva, +15 giornata perfetta; −10 giorno non riuscito (−5 se fatta almeno metà); minimo 10 |
+| Aspetto | sotto 60 colori spenti, sotto 35 foglie cadute |
+| Salvagente | 1 al mese, scatta da solo nel primo giorno mancato se c'è una serie in corso |
+
+Con 4 abitudini medie e sempre giornate perfette: germoglio in 3 giorni, piantina in 9, pianta in 20, albero in 43.
+Con giornate all'80% servono circa il doppio dei giorni.
+
+**Come bilanciare:**
+- La pianta cresce **troppo in fretta**? Alza i punti degli stadi (es. albero a 5.000) oppure abbassa i bonus.
+- Vuoi premiare di più le **giornate perfette**? Alza `bonusGiornataPerfetta`.
+- La salute **cala troppo** dopo un giorno storto? Abbassa `calo` o alza `iniziale`.
+- La pianta **si riprende troppo piano**? Alza `serieSalva` e `giornataPerfetta` nella sezione `salute`.
+- Più **salvagenti**? Cambia `salvagentiAlMese` (vale anche per la serie in "Oggi" e per l'obiettivo di serie).
+
+Dopo ogni modifica apri `tests/test.html`: alcuni test controllano i tempi di crescita e vanno aggiornati
+se cambi i valori (è normale: servono a vedere l'effetto delle modifiche).
 
 ## Promemoria: cosa aspettarsi
 
@@ -102,6 +135,12 @@ all'elenco `FILES` in `sw.js`, altrimenti non sarà disponibile senza connession
   - `calcoli.js`: giorni previsti, completamento, serie, percentuali, statistiche (funzioni "pure", testate)
   - `obiettivo.js`: obiettivo di serie, premio e festa al traguardo
   - `frasi.js`: citazioni del giorno (con autore verificato), frasi di incoraggiamento, pillole di saggezza
+  - `gioco/`: la pianta
+    - `config.js`: **tutte le regole e i numeri del gioco**
+    - `motore.js`: calcolo di punti, stadio, salute, salvagente e medaglie (funzione pura, testata)
+    - `pianta.js`: il disegno SVG della pianta (5 stadi, 3 aspetti)
+    - `vista.js`: scheda in "Oggi", schermata "Traguardi", nome della pianta, festeggiamenti
+    - `coriandoli.js`: coriandoli leggeri (disattivabili, spenti con "riduci animazioni")
   - `pwa.js`: service worker, avviso di aggiornamento, installazione
   - `promemoria.js`: notifiche e numero sull'icona
   - `viste.js`: le schermate Oggi, Statistiche, Abitudini

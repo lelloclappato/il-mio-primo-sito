@@ -28,7 +28,7 @@ export function askImport() { document.getElementById('importFile').click(); }
 const dataBreve = k => { const d = dateOf(k); return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
 
 // Legge il file scelto, lo controlla e, se va bene e l'utente conferma, sostituisce i dati.
-export function setupImport() {
+export function setupImport(dopoImport = render) {
   document.getElementById('importFile').addEventListener('change', e => {
     const file = e.target.files[0]; e.target.value = ''; // così si può scegliere di nuovo lo stesso file
     if (!file) return;
@@ -50,7 +50,7 @@ export function setupImport() {
       if (!confirm(msg)) return;
       try { localStorage.setItem(PRIMA_IMPORT, JSON.stringify(data)); }
       catch (err) { alert('Non riesco a salvare la copia dei dati attuali (memoria piena): importazione annullata.'); return; }
-      setData(c.dati); render();
+      setData(c.dati); dopoImport();
       annuncia('Backup importato');
     };
     r.onerror = () => alert('Non riesco a leggere il file.');

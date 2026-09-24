@@ -4,8 +4,9 @@
 import { todayKey } from './utili.js';
 
 export const ui = {
-  tab: 'oggi',          // 'oggi' | 'stat' | 'hab'
+  tab: 'oggi',          // 'oggi' | 'stat' | 'gioco' | 'hab'
   viewKey: todayKey(),  // giorno mostrato in "Oggi"
   form: null,           // copia dell'abitudine in modifica, oppure null se il modulo è chiuso
-  goal: null            // bozza dell'obiettivo di serie mentre il suo pannello è aperto
+  goal: null,           // bozza dell'obiettivo di serie mentre il suo pannello è aperto
+  nome: false           // true mentre è aperto il pannello per il nome della pianta
 };

@@ -7,13 +7,15 @@ import { data, getVal, getJournal, migrationNote } from './dati.js';
 import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, percentualeComplessiva, piuCostante, livelloGiorno, umoreEAbitudini, daysLabel, soglia, necessarie, progressoObiettivo } from './calcoli.js';
 import { citazioneDelGiorno, fraseMotivazionale, PILLOLE } from './frasi.js';
 import { controllaObiettivo, daFesteggiare, prossimaProposta } from './obiettivo.js';
+import { cardPianta, viewTraguardi, rigaSalvagente, avvisoGiornoSalvato } from './gioco/vista.js';
+import { giorniSalvagente } from './calcoli.js';
 import { ui } from './stato.js';
 import { icon } from './icone.js';
 import { hasPrimaImport } from './backup.js';
 import { isInstallata, isIOS, puoInstallare } from './pwa.js';
 import { permesso, aggiornaBadge } from './promemoria.js';
 
-const TABS = [['oggi', 'check', 'Oggi'], ['stat', 'chart', 'Statistiche'], ['hab', 'settings', 'Abitudini']];
+const TABS = [['oggi', 'check', 'Oggi'], ['stat', 'chart', 'Statistiche'], ['gioco', 'trophy', 'Traguardi'], ['hab', 'settings', 'Abitudini']];
 
 // i 5 livelli dell'umore: il numero (1-5) è quello che viene salvato
 export const UMORI = ['Pessima', 'Giù', 'Così così', 'Bene', 'Ottima'];
@@ -27,7 +29,8 @@ export function render() {
     : null;
 
   controllaObiettivo(); // se l'obiettivo di serie è stato raggiunto, lo registra prima di disegnare
-  document.getElementById('app').innerHTML = ui.tab === 'oggi' ? viewOggi() : ui.tab === 'stat' ? viewStat() : viewHabits();
+  const viste = { oggi: viewOggi, stat: viewStat, gioco: viewTraguardi, hab: viewHabits };
+  document.getElementById('app').innerHTML = viste[ui.tab]();
   document.getElementById('tabs').innerHTML = TABS.map(([id, ic, l]) =>
     `<button data-act="tab" data-id="${id}" class="${ui.tab === id ? 'on' : ''}" ${ui.tab === id ? 'aria-current="page"' : ''}>
       <span class="pill-ico">${icon(ic)}</span>${l}</button>`).join('');
@@ -85,6 +88,8 @@ function viewOggi() {
   </div>`;
   if (!isToday) html += `<button class="btn sec block" data-act="goToday" style="margin:0 0 6px">Torna a oggi</button>`;
   html += migrationBanner() + backupBanner();
+  if (data.habits.length && isToday) html += cardPianta();
+  if (!isToday) html += avvisoGiornoSalvato(ui.viewKey);
   if (isToday && data.habits.length) html += cardFesta() + heroSerie(doneN, list.length, list.filter(h => !isDone(data, h, ui.viewKey)).map(h => h.name));
   else if (list.length) html += `<p class="muted num" style="margin:8px 0 4px">${doneN} di ${list.length} completate</p>`;
   if (data.habits.length) html += cardCitazione();
@@ -146,6 +151,7 @@ function heroSerie(doneN, tot, mancanti) {
     <div class="hero-oggi"><span class="num">${doneN} di ${tot}</span> completate oggi
       <div class="bar ${perfetta ? 'full' : ''}" aria-hidden="true"><i style="width:${Math.round(doneN / tot * 100)}%"></i>${tacca}</div></div>
     ${frase ? `<p class="hero-frase">${esc(frase)}</p>` : ''}` : `<p class="hero-manca">${sotto}</p>`}
+    ${rigaSalvagente()}
     ${rigaObiettivo()}
   </section>`;
 }
@@ -271,6 +277,7 @@ const SETTIMANE = 20;
 const MESI_BREVI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
 function calendario(now) {
   const start = addDays(weekStart(now), -7 * (SETTIMANE - 1)), oggiK = keyOf(now);
+  const salvati = new Set(giorniSalvagente(data, now));
   // La griglia si riempie per colonne: prima colonna = nomi dei giorni, poi una colonna per settimana.
   // Ogni colonna ha 8 caselle: in alto il mese (se inizia lì), sotto i 7 giorni da lunedì a domenica.
   let cells = ['', 'lun', '', 'mer', '', 'ven', '', 'dom'].map(t => `<span class="cal-l">${t}</span>`).join('');
@@ -290,6 +297,7 @@ function calendario(now) {
         conPrevisti++; if (liv >= 1) completi++;
         c = liv >= 1 ? 'l3' : liv >= 0.5 ? 'l2' : liv > 0 ? 'l1' : 'l0';
         desc = Math.round(liv * 100) + '% fatto';
+        if (salvati.has(k)) { c += ' salv'; desc += ', protetto dal salvagente'; }
       }
       cells += `<i class="${c}${k === oggiK ? ' today' : ''}" title="${g.getDate()} ${MONTHS[g.getMonth()]}: ${desc}"></i>`;
     }
@@ -299,6 +307,7 @@ function calendario(now) {
       aria-label="Ultime ${SETTIMANE} settimane: ${completi} giorni completi su ${conPrevisti} con abitudini previste">${cells}</div>
     <div class="legend" aria-hidden="true">meno <i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i> più
       <span style="margin-left:auto"><i class="none"></i>niente previsto</span></div>
+    <div class="legend" aria-hidden="true"><span><i class="l0 salv"></i>protetto dal salvagente</span></div>
   </section>`;
 }
 
@@ -324,6 +333,7 @@ function umoreCard(now) {
 }
 
 // ---------- Abitudini ----------
+const DIFFICOLTA = { 1: 'facile', 2: 'media', 3: 'difficile' };
 
 // Riquadro "Serie": quante abitudini servono ogni giorno per tenere viva la serie complessiva.
 function cardSerie() {
@@ -380,7 +390,7 @@ function viewHabits() {
   if (!data.habits.length) html += `<p class="muted" style="text-align:center">Qui compariranno le abitudini che crei.</p>`;
   for (const h of data.habits) {
     html += `<div class="card row"><div class="grow"><div class="title">${esc(h.name)}</div>
-      <div class="muted">${h.type === 'check' ? 'Sì / No' : 'Obiettivo ' + fmt(h.target) + ' ' + esc(h.unit)} · ${daysLabel(h)}</div></div>
+      <div class="muted">${h.type === 'check' ? 'Sì / No' : 'Obiettivo ' + fmt(h.target) + ' ' + esc(h.unit)} · ${daysLabel(h)} · ${DIFFICOLTA[h.diff] || 'media'}</div></div>
       <button class="btn sec" data-act="edit" data-id="${h.id}" aria-label="Modifica ${esc(h.name)}">Modifica</button></div>`;
   }
   html += cardSerie() + cardPromemoria() + cardInstalla();

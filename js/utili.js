@@ -1,7 +1,7 @@
 // Piccole funzioni di uso generale: date, numeri, testo.
 // Non sanno nulla delle abitudini: si possono riusare ovunque.
 
-export const APP_VERSION = '1.2';
+export const APP_VERSION = '1.3';
 
 export const DAYS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']; // indice = Date.getDay()
 export const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // mostrati da lunedì

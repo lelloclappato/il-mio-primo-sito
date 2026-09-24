@@ -114,6 +114,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .btn.danger { background: var(--coral-soft); color: var(--coral); }
 .btn.block { width: 100%; margin-top: 8px; }
 .linkbtn { /* pulsante che sembra un link, ma con area di tocco di 44 px */
+  display: inline-flex; align-items: center; gap: 4px;
   min-height: 44px; padding: 0 8px; border: 0; background: none; color: var(--accent); font-weight: 600; }
 button:disabled { opacity: .4; cursor: default; }
 
@@ -321,3 +322,96 @@ details.info p { margin: 0 0 8px; }
 .festa-num { margin: 4px 0 8px; font-size: 16px; }
 .festa-num b { font: 600 34px/1 var(--font-display); }
 .festa p { margin: 8px 0; }
+
+/* ---------- La pianta (SVG in js/gioco/pianta.js) ----------
+   I colori sono variabili: la salute della pianta cambia le variabili, non il disegno. */
+:root {
+  --leaf: #2f9e5b; --leaf-dark: #1e7a44; --stem: #3d7a4f; --trunk: #8a5a3c;
+  --pot: #c47a53; --pot-dark: #a5603f; --soil: #6b4a35; --seed: #b07d3a;
+  --flower: #f0b030; --flower-c: #c2410c; --fruit: #e26d5c; --ground: rgba(20, 32, 29, .08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --leaf: #5cc98a; --leaf-dark: #3aa56b; --stem: #5aa377; --trunk: #9a6647;
+    --pot: #b8714c; --pot-dark: #93583a; --soil: #3b2a1f; --seed: #c99a52;
+    --flower: #fbbf24; --flower-c: #f97316; --fruit: #f79486; --ground: rgba(255, 255, 255, .06);
+  }
+}
+.pianta .p-leaf, .pianta .p-canopy { fill: var(--leaf); }
+.pianta .p-leaf2, .pianta .p-canopy2 { fill: var(--leaf-dark); }
+.pianta .p-stem { fill: none; stroke: var(--stem); stroke-linecap: round; }
+.pianta .p-trunk { fill: var(--trunk); }
+.pianta .p-pot { fill: var(--pot); }
+.pianta .p-pot-rim { fill: var(--pot-dark); }
+.pianta .p-soil { fill: var(--soil); }
+.pianta .p-seed { fill: var(--seed); }
+.pianta .p-flower circle { fill: var(--flower); }
+.pianta .p-flower-c { fill: var(--flower-c); }
+.pianta .p-fruit { fill: var(--fruit); }
+.pianta .p-ground { fill: var(--ground); }
+/* stanca: colori spenti; appassita: foglie giallo-marroni */
+.pianta.aspetto-stanca { --leaf: #93a651; --leaf-dark: #74853b; --stem: #7d8a55; }
+.pianta.aspetto-appassita { --leaf: #b89a5a; --leaf-dark: #9a7d44; --stem: #8d7a52; }
+.pianta .fallen { opacity: .8; }
+/* un leggero ondeggiare quando è in forma (niente per chi preferisce meno animazioni) */
+.pianta .p-sway { transform-origin: 60px 100px; }
+@media (prefers-reduced-motion: no-preference) {
+  .pianta.aspetto-ok .p-sway { animation: ondeggia 5s ease-in-out infinite; }
+}
+@keyframes ondeggia { 0%, 100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+
+/* ---------- Gioco: scheda in "Oggi" ---------- */
+.g-card { display: flex; gap: 12px; align-items: flex-start; }
+.g-svg { flex: none; border: 0; background: var(--bg); border-radius: 14px; padding: 4px 4px 0; line-height: 0; }
+.g-nome { font: 600 20px/1.2 var(--font-display); }
+.g-nome .muted { font-family: var(--font-text); }
+.g-bar { margin-top: 8px; }
+.g-bar-l { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.g-bar-l .num { color: var(--text); font-weight: 600; }
+.g-bar .bar { margin-top: 4px; height: 8px; }
+.bar.salute-ok > i { background: var(--done); }
+.bar.salute-stanca > i { background: var(--gold); }
+.bar.salute-appassita > i { background: var(--coral); }
+.g-frase { margin: 8px 0 0; font-size: 14px; }
+.g-salv { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--gold-soft); color: var(--gold-text); font-size: 14px; }
+.g-salv .ico { flex: none; color: var(--gold); }
+
+/* ---------- Gioco: schermata "Traguardi" ---------- */
+.g-big { text-align: center; }
+.g-big .pianta { display: block; margin: 0 auto; }
+.g-big .g-bar { text-align: left; }
+.g-nome.big { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 26px; margin-top: 4px; }
+.g-nome.big .ibtn { width: 44px; height: 44px; }
+.g-stadi { display: flex; justify-content: space-between; gap: 4px; margin-top: 14px; font-size: 12px; color: var(--muted); }
+.g-stadi span { flex: 1; padding: 4px 0; border-top: 3px solid var(--track); }
+.g-stadi span.on { border-top-color: var(--done); color: var(--text); font-weight: 600; }
+.card > .row > .ico { color: var(--gold); flex: none; }
+.g-lista { list-style: none; margin: 0; padding: 0; }
+.g-lista li { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.g-lista li:last-child { border-bottom: 0; }
+.g-lista .ico { flex: none; color: var(--gold); }
+.g-medaglie { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.g-med { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 12px 6px;
+  border-radius: 14px; border: 1px dashed var(--line); color: var(--muted); font-size: 12px; line-height: 1.3; }
+.g-med b { font-size: 13px; color: var(--text); }
+.g-med.on { border: 1px solid var(--gold); background: var(--gold-soft); color: var(--gold-text); }
+.g-med.on .ico { color: var(--gold); }
+.g-med:not(.on) b { color: var(--muted); }
+
+/* tre scelte in fila (difficoltà) */
+.seg.tre { grid-template-columns: repeat(3, 1fr); }
+
+/* calendario: giorno protetto dal salvagente */
+i.salv { box-shadow: inset 0 0 0 2px var(--gold); }
+
+/* barra in basso con 4 schede */
+.tabs button .pill-ico { padding: 3px 14px; }
+
+/* ---------- Avviso di festa e coriandoli ---------- */
+.toast.evento { border-color: var(--gold); }
+.toast.evento > .ico { color: var(--gold); flex: none; }
+.toast.evento .ibtn { width: 44px; height: 44px; border: 0; background: none; }
+.coriandoli { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 20; }
+.coriandoli i { position: absolute; top: -12px; width: 8px; height: 12px; border-radius: 2px; opacity: .9;
+  animation-name: cade; animation-timing-function: cubic-bezier(.3, .6, .6, 1); animation-fill-mode: forwards; }
+@keyframes cade { to { transform: translate(var(--deriva), 105vh) rotate(var(--giro)); opacity: .7; } }
