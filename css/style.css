@@ -470,3 +470,19 @@ i.salv { box-shadow: inset 0 0 0 2px var(--gold); }
 .g-cat .muted { font-size: 13px; font-weight: 500; }
 .g-med .g-data { font-weight: 600; color: var(--gold-text); }
 .g-med.on.cat-strana { border-style: dashed; }
+
+/* ---------- Diario della sera ---------- */
+.diario.sera { border-color: var(--accent); background: linear-gradient(180deg, var(--accent-soft), var(--card) 120px); }
+.diario .domanda { display: flex; align-items: flex-start; gap: 6px; color: var(--text); font-weight: 600; font-size: 15px; margin: 4px 0 6px; }
+.diario .domanda .ico { color: var(--accent); margin-top: 3px; flex: none; }
+.belle { border: 0; padding: 0; margin: 12px 0 0; display: grid; gap: 6px; }
+.belle legend { font-size: 14px; font-weight: 600; color: var(--muted); padding: 0; margin-bottom: 6px; }
+.belle input { min-height: 44px; }
+.diario .linkbtn { margin: 6px 0 0 -8px; }
+.d-voce { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.d-voce:last-child { border-bottom: 0; }
+.d-voce h3 { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 15px; }
+.d-umore { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.d-domanda { margin: 4px 0 2px; font-size: 13px; color: var(--muted); }
+.d-nota { margin: 0; white-space: pre-wrap; }
+.d-belle { margin: 6px 0 0; padding-left: 20px; font-size: 14px; }

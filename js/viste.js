@@ -5,7 +5,7 @@
 import { keyOf, todayKey, dateOf, addDays, weekStart, fmt, esc, DAYS_FULL, MONTHS, APP_VERSION } from './utili.js';
 import { data, getVal, getJournal, migrationNote } from './dati.js';
 import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, percentualeComplessiva, piuCostante, livelloGiorno, umoreEAbitudini, daysLabel, soglia, necessarie, progressoObiettivo } from './calcoli.js';
-import { citazioneDelGiorno, fraseMotivazionale, PILLOLE } from './frasi.js';
+import { citazioneDelGiorno, fraseMotivazionale, PILLOLE, domandaDelGiorno } from './frasi.js';
 import { controllaObiettivo, daFesteggiare, prossimaProposta } from './obiettivo.js';
 import { cardPianta, viewTraguardi, rigaSalvagente, avvisoGiornoSalvato } from './gioco/vista.js';
 import { giorniSalvagente } from './calcoli.js';
@@ -91,7 +91,10 @@ function viewOggi() {
   html += migrationBanner() + backupBanner();
   if (data.habits.length && isToday) html += cardPianta();
   if (!isToday) html += avvisoGiornoSalvato(ui.viewKey);
+  // di sera il diario sale subito sotto la serie: è il momento di scrivere com'è andata
+  const sera = isToday && new Date().getHours() >= 19;
   if (isToday && data.habits.length) html += cardFesta() + heroSerie(doneN, list.length, list.filter(h => !isDone(data, h, ui.viewKey)).map(h => h.name));
+  if (sera && data.habits.length) html += cardDiario(true);
   else if (list.length) html += `<p class="muted num" style="margin:8px 0 4px">${doneN} di ${list.length} completate</p>`;
   if (isToday) html += cardImpegni();
   if (data.habits.length) html += cardCitazione();
@@ -105,24 +108,31 @@ function viewOggi() {
   }
   for (const h of list) html += cardOggi(h);
   if (hidden > 0 && list.length) html += `<p class="muted" style="text-align:center">${hidden} ${hidden === 1 ? 'abitudine non prevista' : 'abitudini non previste'} in questo giorno</p>`;
-  if (data.habits.length) html += cardDiario();
+  if (data.habits.length && !sera) html += cardDiario(false);
   return html;
 }
 
 // Nota e umore del giorno mostrato. Entrambi facoltativi.
 // La nota si salva da sola mentre scrivi (vedi app.js), non serve un pulsante.
-function cardDiario() {
-  const g = getJournal(ui.viewKey);
+// Diario del giorno: umore, una nota (con la domanda del giorno) e tre cose belle. Tutto facoltativo.
+// Di sera (sera = true) è in evidenza e ha il titolo "Com'è andata oggi?".
+function cardDiario(sera) {
+  const g = getJournal(ui.viewKey), domanda = domandaDelGiorno(ui.viewKey), belle = g.belle || [];
   const moods = UMORI.map((l, i) => {
     const v = i + 1, on = g.mood === v;
     return `<button class="mood ${on ? 'on' : ''}" data-act="mood" data-v="${v}" aria-pressed="${on}">${icon('mood' + v, 28)}<span>${l}</span></button>`;
   }).join('');
-  return `<section class="card diario" aria-labelledby="diario-t">
-    <h2 id="diario-t" style="margin:0 0 2px">Com’è andata?</h2>
-    <div class="muted small">Facoltativo: umore e una nota per ricordare la giornata.</div>
+  return `<section class="card diario${sera ? ' sera' : ''}" aria-labelledby="diario-t">
+    <h2 id="diario-t" style="margin:0 0 2px">${sera ? 'Com’è andata oggi?' : 'Diario del giorno'}</h2>
+    <div class="muted small">${sera ? 'Prima di chiudere la giornata, due righe per te. Tutto facoltativo.' : 'Facoltativo: umore, una nota e le cose belle della giornata.'}</div>
     <div class="moods" role="group" aria-label="Umore della giornata">${moods}</div>
-    <label for="nota-giorno" class="sr-only">Nota del giorno</label>
-    <textarea id="nota-giorno" rows="3" maxlength="500" placeholder="Scrivi una nota (si salva da sola)">${esc(g.note || '')}</textarea>
+    <label for="nota-giorno" class="domanda">${icon('pencil', 16)}${esc(domanda)}</label>
+    <textarea id="nota-giorno" rows="${sera ? 4 : 3}" maxlength="1000" placeholder="Scrivi qui (si salva da solo)">${esc(g.note || '')}</textarea>
+    <fieldset class="belle"><legend>Tre cose belle di oggi</legend>
+      ${[0, 1, 2].map(i => `<label class="sr-only" for="bella-${i}">Cosa bella numero ${i + 1}</label>
+        <input type="text" id="bella-${i}" data-bella="${i}" maxlength="80" value="${esc(belle[i] || '')}" placeholder="${['es. un caffè con un’amica', 'es. il sole sul balcone', 'es. ho finito un capitolo'][i]}" autocomplete="off">`).join('')}
+    </fieldset>
+    <button class="linkbtn" data-act="diarioApri">Rileggi il diario</button>
   </section>`;
 }
 

@@ -11,7 +11,7 @@
 //   habits:  [{ id, name, type: 'check' | 'qty', target, unit, step, days: [0..6], created: "AAAA-MM-GG",
 //               diff: 1 | 2 | 3 }],                            // difficoltà: facile, media, difficile
 //   logs:    { "AAAA-MM-GG": { idAbitudine: valore } },      // solo i giorni con qualcosa di segnato
-//   journal: { "AAAA-MM-GG": { mood: 1..5, note: "testo" } }, // nota e umore del giorno (facoltativi)
+//   journal: { "AAAA-MM-GG": { mood: 1..5, note: "testo", belle: ["…", "…", "…"] } }, // diario del giorno (facoltativo)
 //   settings: { reminder: { on: false, time: "20:30" }, soglia: 1,  // soglia: 1 = tutte, 0.8 = circa l'80%
 //               google: { riepilogo: false, calendarId: "", usato: false } },  // Google Calendar (nessun token qui!)
 //   obiettivo: null | { giorni: 21, premio: "una cena fuori", creato: "AAAA-MM-GG" },  // obiettivo di serie in corso

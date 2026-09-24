@@ -10,5 +10,6 @@ export const ui = {
   goal: null,           // bozza dell'obiettivo di serie mentre il suo pannello è aperto
   nome: false,          // true mentre è aperto il pannello per il nome della pianta
   cal: null,            // impostazioni del pannello "Aggiungi al calendario" mentre è aperto
-  specie: false         // true mentre è aperto il pannello per scegliere la pianta
+  specie: false,        // true mentre è aperto il pannello per scegliere la pianta
+  diario: false         // true mentre è aperto il pannello "Rileggi il diario"
 };

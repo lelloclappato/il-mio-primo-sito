@@ -12,7 +12,7 @@ import { simula, moltiplicatore, stadioDaPunti } from '../js/gioco/motore.js';
 import { normalizzaEvento, spaziLiberi, daQuando, riepilogo as riepilogoGoogle, idRiepilogo } from '../js/google/fasce.js';
 import { regolaRipetizione, primoGiorno as primoGiornoCal, dataOra, linkGoogle, creaIcs, testoIcs, piega } from '../js/ics.js';
 import { serieDal, progressoObiettivo, giorniSalvagente } from '../js/calcoli.js';
-import { fraseMotivazionale, momento, elenco, citazioneDelGiorno, CITAZIONI } from '../js/frasi.js';
+import { fraseMotivazionale, momento, elenco, citazioneDelGiorno, CITAZIONI, domandaDelGiorno, DOMANDE_SERA } from '../js/frasi.js';
 
 const OGGI = new Date(2026, 8, 24); // i mesi partono da 0: 8 = settembre. È un giovedì.
 const k = n => keyOf(addDays(OGGI, -n)); // k(0) = oggi, k(1) = ieri, ...
@@ -461,6 +461,18 @@ test('medaglie: metronomo (stesso valore per 10 giorni)', () => {
   uguale(!!medaglia(simula({ version: 4, habits: [w], logs, journal: {}, settings: {} }, OGGI), 'metronomo'), true);
   logs[k(5)] = { w: 2 };
   uguale(medaglia(simula({ version: 4, habits: [w], logs, journal: {}, settings: {} }, OGGI), 'metronomo'), null);
+});
+
+// ---------- diario della sera ----------
+test('diario: una domanda diversa ogni sera, tutte usate nel giro', () => {
+  const viste = new Set(); for (let i = 0; i < DOMANDE_SERA.length; i++) viste.add(domandaDelGiorno(k(i)));
+  uguale(viste.size, DOMANDE_SERA.length);
+  uguale(domandaDelGiorno(k(0)) === domandaDelGiorno(k(0)), true);
+});
+test('backup: le tre cose belle vengono importate, pulite', () => {
+  const d = buono(); d.journal[k(2)] = { belle: ['sole', 42, '  '], note: 'x'.repeat(1500) };
+  const g = controllaBackup(d).dati.journal[k(2)];
+  uguale([g.belle, g.note.length], [['sole', '', '  '], 1000]);
 });
 
 esegui();

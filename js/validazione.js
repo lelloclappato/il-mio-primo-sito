@@ -87,7 +87,8 @@ export function controllaBackup(input) {
       if (!isData(k) || !isOggetto(g)) continue;
       const out = {};
       if (Number.isInteger(g.mood) && g.mood >= 1 && g.mood <= 5) out.mood = g.mood;
-      if (typeof g.note === 'string' && g.note.trim()) out.note = g.note.slice(0, 500);
+      if (typeof g.note === 'string' && g.note.trim()) out.note = g.note.slice(0, 1000);
+      if (Array.isArray(g.belle)) { const b = g.belle.slice(0, 3).map(x => typeof x === 'string' ? x.slice(0, 80) : ''); if (b.some(x => x.trim())) out.belle = b; }
       if (Object.keys(out).length) journal[k] = out;
     }
   }

@@ -137,3 +137,30 @@ export const PILLOLE = [
   { testo: 'Non aggiungere dieci abitudini insieme. Una alla volta, e la successiva quando la prima va da sola.' },
   { testo: 'Un obiettivo raggiunto è un buon momento per chiederti: questa abitudine mi fa ancora bene? Tenerla è una scelta, non un obbligo.' }
 ];
+
+// ---------- domande della sera ----------
+// Una domanda diversa ogni giorno per il diario: aiutano a scrivere anche quando non viene niente in mente.
+export const DOMANDE_SERA = [
+  'Qual è stato il momento migliore della giornata?',
+  'Cosa ti ha fatto sorridere oggi?',
+  'Una piccola vittoria di oggi?',
+  'Cosa hai imparato oggi?',
+  'Cosa faresti diversamente domani?',
+  'Cosa ti ha dato energia oggi? E cosa te l’ha tolta?',
+  'Cosa vuoi ricordare di questa giornata?',
+  'Un gesto gentile che hai fatto o ricevuto oggi?',
+  'Cosa hai fatto oggi solo per te?',
+  'In tre parole, com’è stata la giornata?',
+  'Cosa ti ha sorpreso oggi?',
+  'Qual è la prima cosa che farai domani?',
+  'Cosa hai notato oggi che di solito non noti?',
+  'Per cosa provi gratitudine stasera?',
+  'Qual è stata la cosa più difficile di oggi, e come l’hai affrontata?',
+  'Con chi hai passato un bel momento oggi?',
+  'Quale abitudine ti è venuta più facile oggi? Perché?',
+  'Cosa diresti a chi eri stamattina?'
+];
+export function domandaDelGiorno(chiaveGiorno) {
+  const n = Number(chiaveGiorno.replace(/-/g, ''));
+  return DOMANDE_SERA[(n * 7) % DOMANDE_SERA.length];
+}

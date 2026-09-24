@@ -15,6 +15,7 @@ import { programma, chiediPermesso } from './promemoria.js';
 import { openGoal, renderGoal, syncGoal, saveGoal, removeGoal, closeGoal, festeggiato, controllaObiettivo } from './obiettivo.js';
 import { openNome, saveNome, closeNome, nuoviEventi, mostraEventi, openSpecie, saveSpecie, closeSpecie } from './gioco/vista.js';
 import { openCal, closeCal, apriGoogle, scaricaIcs } from './calendario.js';
+import { openDiario, closeDiario } from './diario.js';
 import * as GV from './google/vista.js';
 
 // Da chiamare dopo ogni cambiamento ai dati: ridisegna e, se è successo qualcosa di bello
@@ -33,7 +34,7 @@ document.addEventListener('click', e => {
   const h = id ? data.habits.find(x => x.id === id) : null;
   if (el.tagName === 'A') e.preventDefault();
   // tocco sullo sfondo scuro del pannello (non sul pannello stesso): chiudi
-  if (act === 'closeBg') { if (e.target === el) { if (ui.goal) closeGoal(); else if (ui.nome) closeNome(); else if (ui.cal) closeCal(); else if (ui.specie) closeSpecie(); else closeForm(); } return; }
+  if (act === 'closeBg') { if (e.target === el) { if (ui.goal) closeGoal(); else if (ui.nome) closeNome(); else if (ui.cal) closeCal(); else if (ui.specie) closeSpecie(); else if (ui.diario) closeDiario(); else closeForm(); } return; }
   switch (act) {
     // --- navigazione ---
     case 'tab': ui.tab = id; render(); window.scrollTo(0, 0); break;
@@ -129,6 +130,8 @@ document.addEventListener('click', e => {
     // --- gioco della pianta ---
     case 'nomeApri': openNome(); break;
     case 'specieApri': openSpecie(); break;
+    case 'diarioApri': salvaNota(); openDiario(); break;
+    case 'diarioChiudi': closeDiario(); break;
     case 'specieChiudi': closeSpecie(); break;
     case 'specieSalva': saveSpecie(); closeSpecie(); render(); annuncia('Pianta scelta'); break;
     case 'nomeChiudi': closeNome(); break;
@@ -182,23 +185,26 @@ document.addEventListener('change', async e => {
   }
 });
 
-// ---------- nota del giorno ----------
-// Si salva mezzo secondo dopo che smetti di scrivere ("debounce": non a ogni lettera),
+// ---------- diario: nota e tre cose belle ----------
+// Si salvano mezzo secondo dopo che smetti di scrivere ("debounce": non a ogni lettera),
 // e subito quando esci dal campo o dall'app, così non si perde niente.
 let timerNota = null, giornoNota = null;
+const campoDiario = el => el && (el.id === 'nota-giorno' || el.dataset.bella !== undefined);
 function salvaNota() {
   clearTimeout(timerNota); timerNota = null;
   const el = document.getElementById('nota-giorno');
   if (!el || giornoNota === null) return;
   setJournal(giornoNota, 'note', el.value.trim() ? el.value : '');
+  const belle = [0, 1, 2].map(i => (document.getElementById('bella-' + i) || {}).value || '').map(t => t.trim());
+  setJournal(giornoNota, 'belle', belle.some(Boolean) ? belle : null);
   giornoNota = null;
 }
 document.addEventListener('input', e => {
-  if (e.target.id !== 'nota-giorno') return;
-  giornoNota = ui.viewKey; // il giorno a cui appartiene la nota, anche se poi si cambia pagina
+  if (!campoDiario(e.target)) return;
+  giornoNota = ui.viewKey; // il giorno a cui appartiene il testo, anche se poi si cambia pagina
   clearTimeout(timerNota); timerNota = setTimeout(salvaNota, 500);
 });
-document.addEventListener('focusout', e => { if (e.target.id === 'nota-giorno') salvaNota(); });
+document.addEventListener('focusout', e => { if (campoDiario(e.target)) salvaNota(); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') salvaNota(); });
 
 // tasto Esc: chiude il pannello
@@ -208,17 +214,18 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'Escape' && ui.nome) closeNome();
   else if (e.key === 'Escape' && ui.cal) closeCal();
   else if (e.key === 'Escape' && ui.specie) closeSpecie();
+  else if (e.key === 'Escape' && ui.diario) closeDiario();
 });
 
 // quando si torna all'app (es. il giorno dopo), ridisegna per aggiornare le date
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') programma(); // il timer del promemoria può essere stato sospeso
   if (document.visibilityState === 'visible' && !ui.form && ui.viewKey > todayKey()) { ui.viewKey = todayKey(); }
-  if (document.visibilityState === 'visible' && !ui.form && !ui.goal && !ui.nome && !ui.cal && !ui.specie) render();
+  if (document.visibilityState === 'visible' && !ui.form && !ui.goal && !ui.nome && !ui.cal && !ui.specie && !ui.diario) render();
 });
 
 setupImport(dopoCambio);
-GV.setupGoogle(() => { if (!ui.form && !ui.goal && !ui.nome && !ui.cal && !ui.specie) render(); });
+GV.setupGoogle(() => { if (!ui.form && !ui.goal && !ui.nome && !ui.cal && !ui.specie && !ui.diario) render(); });
 render();
 mostraEventi(nuoviEventi()); // benvenuto alla prima apertura, o novità arrivate nel frattempo
 programma();

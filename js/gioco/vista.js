@@ -216,6 +216,7 @@ export function nuoviEventi() {
   if (!g.iniziato) {
     // prima volta: la storia passata non si festeggia tutta insieme, si dà il benvenuto
     g.iniziato = true; g.stadioVisto = r.stadio; g.medaglieViste = sbloccate.map(m => m.id); save();
+    if (!data.gioco.specie) return [{ tipo: 'benvenuto', testo: 'Scegli la tua pianta: crescerà con ogni abitudine che completi.' }];
     return [{ tipo: 'benvenuto', testo: r.stadio > 0
       ? `Ecco la tua pianta: grazie alle abitudini che hai già fatto è già ${articolo(r.stadio)}!`
       : 'Ecco la tua pianta! Cresce con ogni abitudine che completi.' }];

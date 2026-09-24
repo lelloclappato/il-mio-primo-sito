@@ -16,7 +16,8 @@ Indirizzo: https://lelloclappato.github.io/le-mie-abitudini/
   al traguardo ricevi una **pillola di saggezza** (un consiglio pratico sulle abitudini)
 - **Frasi di incoraggiamento** personalizzate (nomi delle abitudini che mancano, momento della giornata)
   e una **citazione del giorno** con il suo autore
-- **Nota e umore** del giorno (facoltativi, 5 livelli)
+- **Diario del giorno**: umore (5 livelli), una nota con la **domanda del giorno** e **tre cose belle**; di sera diventa
+  "Com'è andata oggi?" e sale in cima. Con **Rileggi il diario** ritrovi tutti i giorni passati
 - **Statistiche**: griglia delle ultime 20 settimane, percentuali della settimana e del mese, serie migliore,
   abitudine più costante, confronto tra umore e abitudini
 - **La pianta**: cresce con le abitudini completate (più in fretta nelle giornate perfette), ha una salute che cala
@@ -161,6 +162,7 @@ all'elenco `FILES` in `sw.js`, altrimenti non sarà disponibile senza connession
   - `validazione.js`: controllo dei file di backup
   - `calcoli.js`: giorni previsti, completamento, serie, percentuali, statistiche (funzioni "pure", testate)
   - `obiettivo.js`: obiettivo di serie, premio e festa al traguardo
+  - `diario.js`: il pannello "Rileggi il diario"
   - `calendario.js`: pannello "Aggiungi al calendario"; `ics.js`: link di Google Calendar e file `.ics` (funzioni pure, testate)
   - `google/`: collegamento a Google Calendar (`config.js` con l'ID client, `api.js` accesso e chiamate,
     `fasce.js` spazi liberi e riepilogo (puri, testati), `vista.js` schermate)
