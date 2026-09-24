@@ -1,21 +1,19 @@
 # Le mie abitudini
 
-Una piccola app web per tracciare le abitudini quotidiane, costruita con HTML, CSS e JavaScript puro, senza framework né build step.
+App per tracciare le abitudini di ogni giorno, installabile sul telefono (PWA). HTML, CSS e JavaScript puro, senza framework né build.
 
-## Funzionalità
+## Funzioni (v1.0)
 
-- Aggiungi abitudini da seguire ogni giorno
-- Segna il completamento per gli ultimi 7 giorni con un tap
-- Streak (giorni consecutivi) calcolata automaticamente per ogni abitudine
-- Statistiche generali: abitudini attive, % completate oggi, streak migliore
-- Dati salvati nel browser (`localStorage`): niente server, niente account
-
-## Come vederla
-
-Apri il file `index.html` in un browser, oppure servi la cartella con un semplice server statico (es. `python3 -m http.server`).
+- Abitudini Sì/No (es. palestra) e a quantità con obiettivo (es. acqua in litri, sonno in ore)
+- Giorni della settimana a scelta per ogni abitudine
+- Serie di giorni consecutivi, percentuali della settimana e del mese, storico degli ultimi 28 giorni
+- Si possono segnare anche i giorni passati
+- Backup ed esportazione in JSON, con promemoria dopo 30 giorni
+- Dati solo nel browser (`localStorage`): nessun server, nessun account
 
 ## Struttura
 
-- `index.html` — markup dell'app
-- `style.css` — stile
-- `app.js` — logica (gestione abitudini, streak, persistenza)
+- `index.html`: pagina e stile
+- `app.js`: logica
+- `sw.js`, `manifest.json`, `icon-*.png`: installazione e funzionamento offline
+- `.github/workflows/deploy-pages.yml`: pubblicazione su GitHub Pages ad ogni push su `main`

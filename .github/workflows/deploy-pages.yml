@@ -32,7 +32,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p dist
-          cp index.html style.css app.js dist/
+          cp index.html app.js sw.js manifest.json icon-192.png icon-512.png dist/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
