@@ -11,6 +11,7 @@ import { render, annuncia, UMORI } from './viste.js';
 import { openForm, renderForm, syncForm, closeForm } from './modulo.js';
 import { exportBackup, askImport, setupImport, annullaImport } from './backup.js';
 import { setupPWA, installa } from './pwa.js';
+import { programma, chiediPermesso } from './promemoria.js';
 
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
@@ -94,7 +95,20 @@ document.addEventListener('click', e => {
 });
 
 // cambiando il tipo (Sì/No ↔ Quantità) cambiano i campi mostrati nel pannello
-document.addEventListener('change', e => {
+document.addEventListener('change', async e => {
+  // --- promemoria ---
+  if (e.target.id === 'rem-on') {
+    if (e.target.checked) {
+      const p = await chiediPermesso(); // il browser chiede: "Consentire le notifiche?"
+      data.settings.reminder.on = p === 'granted';
+      if (p !== 'granted') annuncia('Notifiche non consentite: promemoria spento');
+    } else data.settings.reminder.on = false;
+    save(); programma(); render(); return;
+  }
+  if (e.target.id === 'rem-time' && e.target.value) {
+    data.settings.reminder.time = e.target.value; save(); programma(); render();
+    annuncia(`Promemoria alle ${e.target.value}`); return;
+  }
   if (e.target.name === 'f-type' && ui.form) {
     syncForm(); ui.form.type = e.target.value;
     if (ui.form.type === 'qty' && !(ui.form.target > 1)) { ui.form.target = ui.form.target || 1; }
@@ -129,11 +143,13 @@ document.addEventListener('keydown', e => {
 
 // quando si torna all'app (es. il giorno dopo), ridisegna per aggiornare le date
 document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') programma(); // il timer del promemoria può essere stato sospeso
   if (document.visibilityState === 'visible' && !ui.form && ui.viewKey > todayKey()) { ui.viewKey = todayKey(); }
   if (document.visibilityState === 'visible' && !ui.form) render();
 });
 
 setupImport();
 render();
+programma();
 // service worker (uso senza connessione), aggiornamenti e installazione: vedi pwa.js
 setupPWA(() => { if (ui.tab === 'hab' && !ui.form) render(); });

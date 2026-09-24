@@ -276,3 +276,12 @@ i.fut { visibility: hidden; }
   background: var(--card); border: 1px solid var(--accent); border-radius: 14px; padding: 10px 10px 10px 14px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, .25); font-size: 14px; }
 .toast span { flex: 1; min-width: 12em; }
+
+/* ---------- Promemoria ---------- */
+.switch-row { display: flex; align-items: center; gap: 12px; min-height: 44px; margin: 0; color: var(--text); font-size: 16px; font-weight: 500; cursor: pointer; }
+.switch-row input { width: 24px; height: 24px; flex: none; accent-color: var(--accent); margin: 0; cursor: pointer; }
+input[type=time] { width: 100%; min-height: 48px; font: inherit; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--text); color-scheme: light dark; }
+input:disabled { opacity: .55; }
+details.info { margin-top: 10px; font-size: 14px; color: var(--muted); }
+details.info summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--accent); font-weight: 600; }
+details.info p { margin: 0 0 8px; }

@@ -9,6 +9,7 @@ import { ui } from './stato.js';
 import { icon } from './icone.js';
 import { hasPrimaImport } from './backup.js';
 import { isInstallata, isIOS, puoInstallare } from './pwa.js';
+import { permesso, aggiornaBadge } from './promemoria.js';
 
 const TABS = [['oggi', 'check', 'Oggi'], ['stat', 'chart', 'Statistiche'], ['hab', 'settings', 'Abitudini']];
 
@@ -34,6 +35,7 @@ export function render() {
     if (el && el.disabled) el = el.parentElement.querySelector('button:not(:disabled)');
     if (el) el.focus();
   }
+  aggiornaBadge(); // numero sull'icona dell'app = abitudini che mancano oggi
 }
 
 // Fa leggere un breve messaggio ai lettori di schermo (la zona #annuncio in index.html è invisibile).
@@ -271,6 +273,30 @@ function umoreCard(now) {
 
 // ---------- Abitudini ----------
 
+// Riquadro "Promemoria": attivazione, orario e spiegazione onesta dei limiti.
+function cardPromemoria() {
+  const r = data.settings.reminder, p = permesso(), attivo = r.on && p === 'granted';
+  let stato;
+  if (p === 'non-supportato') stato = isIOS() && !isInstallata()
+    ? 'Su iPhone e iPad i promemoria funzionano solo con l’app installata sulla schermata Home (iOS 16.4 o successivo).'
+    : 'Questo browser non supporta le notifiche.';
+  else if (p === 'denied') stato = 'Le notifiche sono bloccate per questo sito. Puoi riattivarle dalle impostazioni del browser (Siti → Notifiche).';
+  else if (attivo) stato = `Attivo: alle ${r.time}, solo se manca ancora qualcosa.`;
+  else stato = 'Spento.';
+  return `<h2>Promemoria</h2><div class="card">
+    <label class="switch-row"><input type="checkbox" id="rem-on" ${attivo ? 'checked' : ''} ${p === 'non-supportato' || p === 'denied' ? 'disabled' : ''}>
+      <span>Ricordami le abitudini che mancano</span></label>
+    <label for="rem-time">Orario</label>
+    <input type="time" id="rem-time" value="${r.time}" ${attivo ? '' : 'disabled'}>
+    <p class="muted small" role="status" style="margin:10px 0 0">${stato}</p>
+    <details class="info"><summary>Perché a volte il promemoria non arriva?</summary>
+      <p>Un’app web non può programmare una notifica quando è chiusa: il telefono la sospende per risparmiare batteria.
+      Il promemoria arriva se a quell’ora l’app è aperta o è rimasta in sottofondo da poco.</p>
+      <p>Per un avviso sicuro ogni giorno usa un evento ricorrente nel calendario del telefono: presto potrai crearlo da qui.</p>
+    </details>
+  </div>`;
+}
+
 // Riquadro "App sul telefono": pulsante di installazione o istruzioni, secondo il browser.
 function cardInstalla() {
   let body;
@@ -291,7 +317,7 @@ function viewHabits() {
       <div class="muted">${h.type === 'check' ? 'Sì / No' : 'Obiettivo ' + fmt(h.target) + ' ' + esc(h.unit)} · ${daysLabel(h)}</div></div>
       <button class="btn sec" data-act="edit" data-id="${h.id}" aria-label="Modifica ${esc(h.name)}">Modifica</button></div>`;
   }
-  html += cardInstalla();
+  html += cardPromemoria() + cardInstalla();
   html += `<h2>Dati</h2><div class="card">
     <div class="muted">I dati restano solo su questo dispositivo. Fai un backup ogni tanto.</div>
     <div class="muted" style="margin-top:4px">Ultimo backup: ${data.lastBackup ? esc(data.lastBackup) : 'mai'}</div>

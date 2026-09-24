@@ -24,7 +24,7 @@ const FILES = [
   './css/style.css', './fonts/plus-jakarta-sans-latin-variabile.woff2', './fonts/fraunces-latin-600.woff2',
   './js/app.js', './js/utili.js', './js/dati.js', './js/calcoli.js', './js/stato.js',
   './js/viste.js', './js/modulo.js', './js/backup.js', './js/icone.js', './js/migrazione.js',
-  './js/validazione.js', './js/pwa.js'
+  './js/validazione.js', './js/pwa.js', './js/promemoria.js'
 ];
 
 self.addEventListener('install', e => {
@@ -58,6 +58,16 @@ self.addEventListener('fetch', e => {
   // l'indirizzo principale dell'app (…/ oppure …/index.html, anche con ?parametri) risponde sempre con index.html
   const app = req.mode === 'navigate' && /\/(index\.html)?$/.test(url.pathname);
   e.respondWith(SVILUPPO ? reteConRiserva(req, app) : cachePrima(req, app));
+});
+
+// Tocco su una notifica (promemoria): porta in primo piano l'app se è aperta, altrimenti la apre.
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil((async () => {
+    const finestre = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const f of finestre) if ('focus' in f) return f.focus();
+    return self.clients.openWindow((e.notification.data && e.notification.data.url) || './');
+  })());
 });
 
 // Produzione: "prima la cache". I file della versione installata rispondono subito, anche offline.
