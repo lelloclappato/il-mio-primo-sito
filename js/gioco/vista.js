@@ -12,6 +12,13 @@ import { CONFIG } from './config.js';
 import { simula } from './motore.js';
 import { svgPianta } from './pianta.js';
 import { lanciaCoriandoli } from './coriandoli.js';
+import { SPECIE, specieDa } from './specie.js';
+
+// specie scelta (null se non ancora scelta) e nomi degli stadi: quelli della specie, altrimenti quelli generici
+const specieScelta = () => specieDa(data.gioco.specie);
+const nomeStadio = i => specieScelta() ? specieScelta().stadi[i][0] : CONFIG.stadi[i].nome;
+const articolo = i => specieScelta() ? specieScelta().stadi[i][1] : CONFIG.stadi[i].articolo;
+const disegno = (r, size, label = '') => svgPianta(r.stadio, r.aspetto, { size, label, specie: data.gioco.specie });
 
 export const nomePianta = () => data.gioco.nome || 'Pianta';
 const dataBreve = k => { const d = dateOf(k); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
@@ -21,7 +28,7 @@ const ASPETTO = { ok: 'in forma', stanca: 'un po’ stanca', appassita: 'appassi
 function fraseSalute(r) {
   if (r.aspetto === 'appassita') return 'Sta riposando. Non preoccuparti: basta ricominciare e si riprende.';
   if (r.aspetto === 'stanca') return 'Ha un po’ di sete: una giornata completa e torna in forma.';
-  if (r.prossimo && r.progressoStadio > 0.85) return `Manca pochissimo: sta per diventare ${r.prossimo.articolo}!`;
+  if (r.prossimo && r.progressoStadio > 0.85) return `Manca pochissimo: sta per diventare ${articolo(r.stadio + 1)}!`;
   return r.stadio === 0 ? 'Ogni abitudine che completi la aiuta a spuntare.' : 'Cresce bene: continua così.';
 }
 
@@ -34,13 +41,14 @@ const testoCrescita = r => r.prossimo ? `${r.punti} / ${r.prossimo.punti} punti`
 
 // ---------- scheda in alto in "Oggi" ----------
 export function cardPianta() {
+  if (!data.gioco.specie) return cardScegli();
   const r = simula(data);
-  const label = `${nomePianta()}: ${r.nomeStadio.toLowerCase()}, ${ASPETTO[r.aspetto]}`;
+  const label = `${nomePianta()}: ${nomeStadio(r.stadio).toLowerCase()}, ${ASPETTO[r.aspetto]}`;
   return `<section class="card g-card" aria-label="La tua pianta">
-    <button class="g-svg" data-act="tab" data-id="gioco" aria-label="${esc(label)}. Apri i traguardi">${svgPianta(r.stadio, r.aspetto, { size: 88, label: '' })}</button>
+    <button class="g-svg" data-act="tab" data-id="gioco" aria-label="${esc(label)}. Apri i traguardi">${disegno(r, 88)}</button>
     <div class="grow">
       <div class="g-nome">${esc(nomePianta())}</div>
-      <div class="muted small">Stadio: ${r.nomeStadio} (${r.stadio + 1} di ${CONFIG.stadi.length})</div>
+      <div class="muted small">${esc(specieScelta().nome)} · ${nomeStadio(r.stadio)} (${r.stadio + 1} di ${CONFIG.stadi.length})</div>
       ${barra('Crescita', r.progressoStadio, testoCrescita(r), 'full')}
       ${barra('Salute', r.salute / 100, r.salute + '%', 'salute-' + r.aspetto)}
       <p class="g-frase">${r.puntiOggi ? `<strong class="num">+${r.puntiOggi}</strong> punti oggi · ` : ''}${fraseSalute(r)}</p>
@@ -68,23 +76,27 @@ export function avvisoGiornoSalvato(k) {
 // ---------- schermata "Traguardi" ----------
 export function viewTraguardi() {
   const r = simula(data);
+  // le medaglie degli stadi prendono il nome dello stadio della pianta scelta
+  r.medaglie.forEach(m => { const i = /^stadio-(\d)$/.exec(m.id); if (i) { m.nome = nomeStadio(+i[1]); m.desc = `La pianta diventa ${articolo(+i[1])}.`; } });
   const sblocc = r.medaglie.filter(m => m.data).sort((a, b) => b.data.localeCompare(a.data));
   const bloccate = r.medaglie.filter(m => !m.data);
   const mese = MONTHS[new Date().getMonth()];
 
   let html = `<h1>Traguardi</h1>
   <section class="card g-big" aria-label="La tua pianta">
-    ${svgPianta(r.stadio, r.aspetto, { size: 170, label: `${nomePianta()}: ${r.nomeStadio.toLowerCase()}, ${ASPETTO[r.aspetto]}` })}
+    ${disegno(r, 170, `${nomePianta()}: ${nomeStadio(r.stadio).toLowerCase()}, ${ASPETTO[r.aspetto]}`)}
     <div class="g-nome big">${esc(nomePianta())}
       <button class="ibtn" data-act="nomeApri" aria-label="Cambia il nome della pianta">${icon('pencil', 18)}</button></div>
-    <div class="muted">${r.nomeStadio} · ${ASPETTO[r.aspetto]}</div>
+    <div class="muted">${specieScelta() ? esc(specieScelta().nome) + ' · ' : ''}${nomeStadio(r.stadio)} · ${ASPETTO[r.aspetto]}</div>
+    <button class="linkbtn" data-act="specieApri">${specieScelta() ? 'Cambia pianta' : 'Scegli la tua pianta'}</button>
     <p class="g-frase" style="text-align:center">${fraseSalute(r)}</p>
     ${barra('Crescita', r.progressoStadio, testoCrescita(r), 'full')}
-    ${r.prossimo ? `<p class="muted small" style="margin:4px 0 0">Prossimo stadio: <strong>${r.prossimo.nome}</strong>, tra ${r.prossimo.punti - r.punti} punti.</p>` : ''}
+    ${r.prossimo ? `<p class="muted small" style="margin:4px 0 0">Prossimo stadio: <strong>${nomeStadio(r.stadio + 1)}</strong>, tra ${r.prossimo.punti - r.punti} punti.</p>` : ''}
     ${barra('Salute', r.salute / 100, r.salute + '%', 'salute-' + r.aspetto)}
     <div class="g-stadi" aria-label="Stadi della pianta">${CONFIG.stadi.map((s, i) =>
-      `<span class="${i <= r.stadio ? 'on' : ''}">${s.nome}</span>`).join('')}</div>
+      `<span class="${i <= r.stadio ? 'on' : ''}">${nomeStadio(i)}</span>`).join('')}</div>
   </section>
+  ${cardCuriosita(r)}
 
   <section class="card"><div class="row">${icon('lifebuoy', 24)}<div class="grow"><b>Salvagente di ${mese}</b>
     <div class="muted small">${r.salvagente.disponibili
@@ -113,6 +125,55 @@ export function viewTraguardi() {
     (facile, media, difficile), +${CONFIG.bonusSerieSalva} se la serie è salva, +${CONFIG.bonusGiornataPerfetta} se la giornata è perfetta,
     e fino a +${Math.round(CONFIG.moltiplicatore.tetto * 100)}% con una serie lunga.</p>`;
   return html;
+}
+
+// ---------- scelta della pianta ----------
+// In "Oggi", finché non è scelta: invito con le anteprime delle piante
+function cardScegli() {
+  return `<section class="card g-scegli" aria-labelledby="g-scegli-t">
+    <h2 id="g-scegli-t" style="margin:0">Scegli la tua pianta</h2>
+    <p class="muted small" style="margin:4px 0 8px">Crescerà con le tue abitudini. Ognuna ha il suo aspetto e le sue curiosità da scoprire.</p>
+    <div class="g-anteprime" aria-hidden="true">${SPECIE.map(s => svgPianta(4, 'ok', { size: 44, specie: s.id })).join('')}</div>
+    <button class="btn block" data-act="specieApri">Scegli</button>
+  </section>`;
+}
+
+// Curiosità della pianta: la prima subito, le altre una per ogni nuovo stadio
+function cardCuriosita(r) {
+  const s = specieScelta();
+  if (!s) return '';
+  return `<h2>Curiosità: ${esc(s.nome)} <span class="muted" style="text-transform:none;letter-spacing:0">(${esc(s.latino)})</span></h2>
+    <div class="card"><ol class="g-curiosita">${s.curiosita.map((c, i) => i <= r.stadio
+      ? `<li>${esc(c)}</li>`
+      : `<li class="chiusa">${icon('lock', 16).replace('class="ico"', 'class="ico inline"')} Si scopre quando la pianta diventa ${articolo(i)}.</li>`).join('')}</ol></div>`;
+}
+
+let openerSpecie = null;
+export function openSpecie() {
+  openerSpecie = document.activeElement;
+  ui.specie = true;
+  const attuale = data.gioco.specie || SPECIE[0].id;
+  document.getElementById('modal').innerHTML = `<div class="modal" data-act="closeBg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="s-title">
+    <div class="row"><h1 class="grow" id="s-title" tabindex="-1">Scegli la tua pianta</h1><button class="ibtn" data-act="specieChiudi" aria-label="Chiudi">${icon('x')}</button></div>
+    <p class="muted" style="margin:8px 0 0">Crescono tutte allo stesso ritmo: cambiano l’aspetto e le curiosità.
+      ${data.gioco.specie ? 'Se cambi pianta, la crescita raggiunta resta la stessa.' : ''}</p>
+    <fieldset class="g-specie"><legend class="sr-only">Pianta</legend>${SPECIE.map(s => `<label>
+      <input type="radio" name="specie" value="${s.id}" ${s.id === attuale ? 'checked' : ''}>
+      <span>${svgPianta(4, 'ok', { size: 64, specie: s.id })}<b>${esc(s.nome)}</b><small>${esc(s.breve)}</small></span></label>`).join('')}
+    </fieldset>
+    <button class="btn block" data-act="specieSalva" style="margin-top:16px">Scegli questa pianta</button>
+  </div></div>`;
+  document.getElementById('s-title').focus();
+}
+export function saveSpecie() {
+  const sel = document.querySelector('input[name="specie"]:checked');
+  if (sel && specieDa(sel.value)) { data.gioco.specie = sel.value; save(); }
+}
+export function closeSpecie() {
+  ui.specie = false;
+  document.getElementById('modal').innerHTML = '';
+  if (openerSpecie && document.contains(openerSpecie)) openerSpecie.focus();
+  openerSpecie = null;
 }
 
 // ---------- pannello "Nome della pianta" ----------
@@ -151,10 +212,13 @@ export function nuoviEventi() {
     // prima volta: la storia passata non si festeggia tutta insieme, si dà il benvenuto
     g.iniziato = true; g.stadioVisto = r.stadio; g.medaglieViste = sbloccate.map(m => m.id); save();
     return [{ tipo: 'benvenuto', testo: r.stadio > 0
-      ? `Ecco la tua pianta: grazie alle abitudini che hai già fatto è già ${CONFIG.stadi[r.stadio].articolo}!`
+      ? `Ecco la tua pianta: grazie alle abitudini che hai già fatto è già ${articolo(r.stadio)}!`
       : 'Ecco la tua pianta! Cresce con ogni abitudine che completi.' }];
   }
-  if (r.stadio > g.stadioVisto) { ev.push({ tipo: 'stadio', testo: `Nuovo stadio per ${nomePianta()}: ${r.nomeStadio}!` }); g.stadioVisto = r.stadio; }
+  if (r.stadio > g.stadioVisto) {
+    ev.push({ tipo: 'stadio', testo: `Nuovo stadio per ${nomePianta()}: ${nomeStadio(r.stadio)}!${specieScelta() ? ' C’è una nuova curiosità da leggere.' : ''}` });
+    g.stadioVisto = r.stadio;
+  }
   for (const m of sbloccate) {
     if (g.medaglieViste.includes(m.id) || m.id.startsWith('stadio-')) { if (!g.medaglieViste.includes(m.id)) g.medaglieViste.push(m.id); continue; }
     g.medaglieViste.push(m.id);

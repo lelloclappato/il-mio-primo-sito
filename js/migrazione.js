@@ -16,7 +16,7 @@
 //               google: { riepilogo: false, calendarId: "", usato: false } },  // Google Calendar (nessun token qui!)
 //   obiettivo: null | { giorni: 21, premio: "una cena fuori", creato: "AAAA-MM-GG" },  // obiettivo di serie in corso
 //   traguardi: [{ giorni, premio, raggiunto: "AAAA-MM-GG", pillola: numero | null, visto: true | false }],
-//   gioco: { nome: "", nomeChiesto: false, coriandoli: true, medaglieViste: [id], stadioVisto: 0, iniziato: false }
+//   gioco: { nome: "", specie: "basilico" | …, nomeChiesto: false, coriandoli: true, medaglieViste: [id], stadioVisto: 0, iniziato: false }
 // }
 import { todayKey, uid } from './utili.js';
 
@@ -78,6 +78,7 @@ export function pulisciGioco(g) {
   g = g && typeof g === 'object' && !Array.isArray(g) ? g : {};
   return {
     nome: typeof g.nome === 'string' ? g.nome.trim().slice(0, 20) : '',
+    specie: typeof g.specie === 'string' ? g.specie.slice(0, 30) : '',   // '' = non ancora scelta
     nomeChiesto: g.nomeChiesto === true,
     coriandoli: g.coriandoli !== false,
     medaglieViste: Array.isArray(g.medaglieViste) ? g.medaglieViste.filter(x => typeof x === 'string').slice(0, 500) : [],

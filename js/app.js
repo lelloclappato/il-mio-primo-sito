@@ -13,7 +13,7 @@ import { exportBackup, askImport, setupImport, annullaImport } from './backup.js
 import { setupPWA, installa } from './pwa.js';
 import { programma, chiediPermesso } from './promemoria.js';
 import { openGoal, renderGoal, syncGoal, saveGoal, removeGoal, closeGoal, festeggiato, controllaObiettivo } from './obiettivo.js';
-import { openNome, saveNome, closeNome, nuoviEventi, mostraEventi } from './gioco/vista.js';
+import { openNome, saveNome, closeNome, nuoviEventi, mostraEventi, openSpecie, saveSpecie, closeSpecie } from './gioco/vista.js';
 import { openCal, closeCal, apriGoogle, scaricaIcs } from './calendario.js';
 import * as GV from './google/vista.js';
 
@@ -33,7 +33,7 @@ document.addEventListener('click', e => {
   const h = id ? data.habits.find(x => x.id === id) : null;
   if (el.tagName === 'A') e.preventDefault();
   // tocco sullo sfondo scuro del pannello (non sul pannello stesso): chiudi
-  if (act === 'closeBg') { if (e.target === el) { if (ui.goal) closeGoal(); else if (ui.nome) closeNome(); else if (ui.cal) closeCal(); else closeForm(); } return; }
+  if (act === 'closeBg') { if (e.target === el) { if (ui.goal) closeGoal(); else if (ui.nome) closeNome(); else if (ui.cal) closeCal(); else if (ui.specie) closeSpecie(); else closeForm(); } return; }
   switch (act) {
     // --- navigazione ---
     case 'tab': ui.tab = id; render(); window.scrollTo(0, 0); break;
@@ -128,6 +128,9 @@ document.addEventListener('click', e => {
     case 'gFascia': el.disabled = true; GV.creaFascia(el.dataset.ora).then(msg => { annuncia(msg); alert(msg); render(); }); break;
     // --- gioco della pianta ---
     case 'nomeApri': openNome(); break;
+    case 'specieApri': openSpecie(); break;
+    case 'specieChiudi': closeSpecie(); break;
+    case 'specieSalva': saveSpecie(); closeSpecie(); render(); annuncia('Pianta scelta'); break;
     case 'nomeChiudi': closeNome(); break;
     case 'nomeSalva': saveNome(); closeNome(); render(); annuncia('Nome della pianta salvato'); break;
     case 'eventoVedi': document.getElementById('evento').innerHTML = ''; ui.tab = 'gioco'; render(); window.scrollTo(0, 0); break;
@@ -204,17 +207,18 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'Escape' && ui.goal) closeGoal();
   else if (e.key === 'Escape' && ui.nome) closeNome();
   else if (e.key === 'Escape' && ui.cal) closeCal();
+  else if (e.key === 'Escape' && ui.specie) closeSpecie();
 });
 
 // quando si torna all'app (es. il giorno dopo), ridisegna per aggiornare le date
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') programma(); // il timer del promemoria può essere stato sospeso
   if (document.visibilityState === 'visible' && !ui.form && ui.viewKey > todayKey()) { ui.viewKey = todayKey(); }
-  if (document.visibilityState === 'visible' && !ui.form && !ui.goal && !ui.nome && !ui.cal) render();
+  if (document.visibilityState === 'visible' && !ui.form && !ui.goal && !ui.nome && !ui.cal && !ui.specie) render();
 });
 
 setupImport(dopoCambio);
-GV.setupGoogle(() => { if (!ui.form && !ui.goal && !ui.nome && !ui.cal) render(); });
+GV.setupGoogle(() => { if (!ui.form && !ui.goal && !ui.nome && !ui.cal && !ui.specie) render(); });
 render();
 mostraEventi(nuoviEventi()); // benvenuto alla prima apertura, o novità arrivate nel frattempo
 programma();

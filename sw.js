@@ -26,7 +26,7 @@ const FILES = [
   './js/viste.js', './js/modulo.js', './js/backup.js', './js/icone.js', './js/migrazione.js',
   './js/validazione.js', './js/pwa.js', './js/promemoria.js', './js/frasi.js', './js/obiettivo.js', './js/calendario.js', './js/ics.js',
   './js/google/config.js', './js/google/api.js', './js/google/fasce.js', './js/google/vista.js',
-  './js/gioco/config.js', './js/gioco/motore.js', './js/gioco/pianta.js', './js/gioco/vista.js', './js/gioco/coriandoli.js'
+  './js/gioco/config.js', './js/gioco/motore.js', './js/gioco/pianta.js', './js/gioco/vista.js', './js/gioco/coriandoli.js', './js/gioco/specie.js'
 ];
 
 self.addEventListener('install', e => {

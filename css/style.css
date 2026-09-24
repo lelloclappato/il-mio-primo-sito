@@ -349,9 +349,31 @@ details.info p { margin: 0 0 8px; }
 .pianta .p-flower-c { fill: var(--flower-c); }
 .pianta .p-fruit { fill: var(--fruit); }
 .pianta .p-ground { fill: var(--ground); }
-/* stanca: colori spenti; appassita: foglie giallo-marroni */
-.pianta.aspetto-stanca { --leaf: #93a651; --leaf-dark: #74853b; --stem: #7d8a55; }
-.pianta.aspetto-appassita { --leaf: #b89a5a; --leaf-dark: #9a7d44; --stem: #8d7a52; }
+/* colori propri di alcune specie */
+.pianta { --bloom: #f4a6c1; --bloom-dark: #e07fa3; --petal: #f5b82e; --disc: #6b4423; --cactus: #4c9a6a; --cactus-dark: #2f7a4e;
+  --olive: #4b3a5c; --acorn: #a0703f; --cap: #6d4c2c; --spike: #f3eef8; --bud: #6fae4f; }
+.pianta.specie-olivo { --leaf: #8aa58a; --leaf-dark: #6c8a6d; --trunk: #7d6a55; }
+.pianta.specie-quercia { --leaf: #2f7d45; --leaf-dark: #22603a; --trunk: #6f4a30; }
+.pianta.specie-ciliegio { --trunk: #5e3b35; }
+.pianta.specie-basilico { --leaf: #3db35f; --leaf-dark: #2a8f49; }
+.pianta .p-bloom { fill: var(--bloom); }
+.pianta .p-bloom2 { fill: var(--bloom-dark); }
+.pianta .p-blossom-w { fill: #fff5f8; }
+.pianta .p-petal ellipse { fill: var(--petal); }
+.pianta .p-disc { fill: var(--disc); }
+.pianta .p-seedpt { fill: #3b2614; }
+.pianta .p-bud { fill: var(--bud); }
+.pianta .p-cactus { fill: var(--cactus); }
+.pianta .p-cactus-rib { fill: none; stroke: var(--cactus-dark); stroke-width: 1.2; stroke-linecap: round; }
+.pianta .p-spine { fill: #f4f1e4; }
+.pianta .p-flower-pink ellipse { fill: #f06d9b; }
+.pianta .p-olive { fill: var(--olive); }
+.pianta .p-acorn { fill: var(--acorn); }
+.pianta .p-cap { fill: var(--cap); }
+.pianta .p-spike circle { fill: var(--spike); stroke: #c9b8d9; stroke-width: .5; }
+/* stanca: colori spenti; appassita: foglie giallo-marroni (vengono dopo le specie, quindi prevalgono) */
+.pianta.aspetto-stanca { --leaf: #93a651; --leaf-dark: #74853b; --stem: #7d8a55; --cactus: #8a9a55; --cactus-dark: #6d7c40; --bloom: #d9aebb; --bloom-dark: #c08c9d; }
+.pianta.aspetto-appassita { --leaf: #b89a5a; --leaf-dark: #9a7d44; --stem: #8d7a52; --cactus: #a8955a; --cactus-dark: #8a7843; --disc: #7a5a3a; }
 .pianta .fallen { opacity: .8; }
 /* un leggero ondeggiare quando è in forma (niente per chi preferisce meno animazioni) */
 .pianta .p-sway { transform-origin: 60px 100px; }
@@ -427,3 +449,18 @@ i.salv { box-shadow: inset 0 0 0 2px var(--gold); }
 .g-fasce label { margin: 0 0 6px; }
 .g-fascia { margin-top: 8px; }
 .g-ricollega { margin: 10px 0; }
+
+/* ---------- Scelta della pianta e curiosità ---------- */
+.g-anteprime { display: flex; justify-content: space-between; margin: 4px 0 6px; }
+.g-specie { border: 0; padding: 0; margin: 14px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.g-specie label { margin: 0; cursor: pointer; }
+.g-specie input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.g-specie span { display: flex; flex-direction: column; align-items: center; text-align: center; height: 100%; padding: 8px 8px 10px;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.g-specie b { color: var(--text); font-size: 15px; margin-top: 2px; }
+.g-specie small { color: var(--muted); font-size: 13px; line-height: 1.3; }
+.g-specie input:checked + span { border: 2px solid var(--accent); background: var(--accent-soft); padding: 7px 7px 9px; }
+.g-specie input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.g-curiosita { margin: 0; padding-left: 20px; }
+.g-curiosita li { padding: 6px 0; font-size: 15px; }
+.g-curiosita li.chiusa { color: var(--muted); list-style: none; margin-left: -20px; font-size: 14px; }

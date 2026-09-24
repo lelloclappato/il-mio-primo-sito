@@ -21,7 +21,9 @@ Indirizzo: https://lelloclappato.github.io/le-mie-abitudini/
   abitudine più costante, confronto tra umore e abitudini
 - **La pianta**: cresce con le abitudini completate (più in fretta nelle giornate perfette), ha una salute che cala
   piano se salti dei giorni e si riprende quando ricominci; non muore mai e non perde mai lo stadio raggiunto.
-  Nome scelto da te, **salvagente** automatico (uno al mese), **medaglie** e coriandoli (disattivabili)
+  Scegli tra 6 piante (basilico, girasole, olivo, cactus, ciliegio giapponese, quercia), ognuna con il suo aspetto
+  e 5 **curiosità** che si scoprono crescendo. Nome scelto da te, **salvagente** automatico (uno al mese),
+  **medaglie** e coriandoli (disattivabili)
 - Si possono segnare anche i giorni passati
 - **Backup** in un file JSON, con controllo completo del file prima di importarlo
 - **Installabile** sul telefono e funzionante **senza connessione**
@@ -166,7 +168,8 @@ all'elenco `FILES` in `sw.js`, altrimenti non sarà disponibile senza connession
   - `gioco/`: la pianta
     - `config.js`: **tutte le regole e i numeri del gioco**
     - `motore.js`: calcolo di punti, stadio, salute, salvagente e medaglie (funzione pura, testata)
-    - `pianta.js`: il disegno SVG della pianta (5 stadi, 3 aspetti)
+    - `pianta.js`: il disegno SVG della pianta (6 specie, 5 stadi, 3 aspetti)
+    - `specie.js`: le piante tra cui scegliere, con nomi degli stadi e curiosità
     - `vista.js`: scheda in "Oggi", schermata "Traguardi", nome della pianta, festeggiamenti
     - `coriandoli.js`: coriandoli leggeri (disattivabili, spenti con "riduci animazioni")
   - `pwa.js`: service worker, avviso di aggiornamento, installazione
