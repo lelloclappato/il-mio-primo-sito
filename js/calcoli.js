@@ -89,6 +89,23 @@ export function serieComplessiva(d, oggi = new Date()) {
   return serieDaStati(giorni(primoGiorno(d), oggi).map(g => statoGiorno(d, g, ok)));
 }
 
+// Serie complessiva contando solo i giorni da "daKey" in poi (per l'obiettivo di serie:
+// i giorni fatti prima di impostarlo non contano).
+export function serieDal(d, daKey, oggi = new Date()) {
+  if (!d.habits.length) return 0;
+  const start = [primoGiorno(d), daKey].sort()[1], ok = keyOf(oggi); // il più recente dei due
+  if (start > ok) return 0;
+  return serieDaStati(giorni(start, oggi).map(g => statoGiorno(d, g, ok))).attuale;
+}
+
+// Avanzamento dell'obiettivo di serie: { fatti, giorni, manca, raggiunto } oppure null se non c'è.
+export function progressoObiettivo(d, oggi = new Date()) {
+  const o = d.obiettivo;
+  if (!o) return null;
+  const fatti = Math.min(serieDal(d, o.creato, oggi), o.giorni);
+  return { fatti, giorni: o.giorni, manca: o.giorni - fatti, raggiunto: fatti >= o.giorni };
+}
+
 // ---------- percentuali ----------
 
 // % di giorni previsti completati tra from e to (inclusi); null se nessun giorno conta.

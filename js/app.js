@@ -12,6 +12,7 @@ import { openForm, renderForm, syncForm, closeForm } from './modulo.js';
 import { exportBackup, askImport, setupImport, annullaImport } from './backup.js';
 import { setupPWA, installa } from './pwa.js';
 import { programma, chiediPermesso } from './promemoria.js';
+import { openGoal, renderGoal, syncGoal, saveGoal, removeGoal, closeGoal, festeggiato } from './obiettivo.js';
 
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
@@ -20,7 +21,7 @@ document.addEventListener('click', e => {
   const h = id ? data.habits.find(x => x.id === id) : null;
   if (el.tagName === 'A') e.preventDefault();
   // tocco sullo sfondo scuro del pannello (non sul pannello stesso): chiudi
-  if (act === 'closeBg') { if (e.target === el) closeForm(); return; }
+  if (act === 'closeBg') { if (e.target === el) { if (ui.goal) closeGoal(); else closeForm(); } return; }
   switch (act) {
     // --- navigazione ---
     case 'tab': ui.tab = id; render(); window.scrollTo(0, 0); break;
@@ -91,6 +92,19 @@ document.addEventListener('click', e => {
     case 'import': askImport(); break;
     case 'undoImport': annullaImport(); break;
     case 'install': installa(); break;
+    // --- obiettivo di serie ---
+    case 'goalOpen': openGoal(); break;
+    case 'goalClose': closeGoal(); break;
+    case 'goalSave': {
+      const errore = saveGoal();
+      if (errore) { alert(errore); break; }
+      closeGoal(); render(); annuncia('Obiettivo di serie salvato'); break;
+    }
+    case 'goalRemove':
+      if (confirm('Togliere l’obiettivo di serie? La serie continua comunque.')) { removeGoal(); closeGoal(); render(); }
+      break;
+    case 'festaOk': festeggiato(); render(); break;
+    case 'festaNuovo': festeggiato(); render(); openGoal(); break;
   }
 });
 
@@ -104,6 +118,15 @@ document.addEventListener('change', async e => {
       if (p !== 'granted') annuncia('Notifiche non consentite: promemoria spento');
     } else data.settings.reminder.on = false;
     save(); programma(); render(); return;
+  }
+  // --- obiettivo: "Scegli tu" mostra il campo per il numero di giorni ---
+  if (e.target.name === 'g-giorni' && ui.goal) {
+    syncGoal();
+    // "Scegli tu": si parte da 10, un numero che non è tra le proposte, così compare il campo da riempire
+    if (e.target.value === 'altro') ui.goal.giorni = 10;
+    renderGoal();
+    document.querySelector(`input[name="g-giorni"][value="${e.target.value}"]`).focus();
+    return;
   }
   // --- soglia della serie (100% o 80%) ---
   if (e.target.name === 'soglia') {
@@ -146,6 +169,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 // tasto Esc: chiude il pannello
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && ui.form) closeForm();
+  else if (e.key === 'Escape' && ui.goal) closeGoal();
 });
 
 // quando si torna all'app (es. il giorno dopo), ridisegna per aggiornare le date

@@ -4,8 +4,9 @@
 // che dice cosa fare al tocco: lo legge app.js.
 import { keyOf, todayKey, dateOf, addDays, weekStart, fmt, esc, DAYS_FULL, MONTHS, APP_VERSION } from './utili.js';
 import { data, getVal, getJournal, migrationNote } from './dati.js';
-import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, percentualeComplessiva, piuCostante, livelloGiorno, umoreEAbitudini, daysLabel, soglia, necessarie } from './calcoli.js';
-import { citazioneDelGiorno, fraseMotivazionale } from './frasi.js';
+import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, percentualeComplessiva, piuCostante, livelloGiorno, umoreEAbitudini, daysLabel, soglia, necessarie, progressoObiettivo } from './calcoli.js';
+import { citazioneDelGiorno, fraseMotivazionale, PILLOLE } from './frasi.js';
+import { controllaObiettivo, daFesteggiare, prossimaProposta } from './obiettivo.js';
 import { ui } from './stato.js';
 import { icon } from './icone.js';
 import { hasPrimaImport } from './backup.js';
@@ -25,6 +26,7 @@ export function render() {
     ? `[data-act="${a.dataset.act}"]` + (a.dataset.id ? `[data-id="${a.dataset.id}"]` : '') + (a.dataset.n ? `[data-n="${a.dataset.n}"]` : '')
     : null;
 
+  controllaObiettivo(); // se l'obiettivo di serie è stato raggiunto, lo registra prima di disegnare
   document.getElementById('app').innerHTML = ui.tab === 'oggi' ? viewOggi() : ui.tab === 'stat' ? viewStat() : viewHabits();
   document.getElementById('tabs').innerHTML = TABS.map(([id, ic, l]) =>
     `<button data-act="tab" data-id="${id}" class="${ui.tab === id ? 'on' : ''}" ${ui.tab === id ? 'aria-current="page"' : ''}>
@@ -83,7 +85,7 @@ function viewOggi() {
   </div>`;
   if (!isToday) html += `<button class="btn sec block" data-act="goToday" style="margin:0 0 6px">Torna a oggi</button>`;
   html += migrationBanner() + backupBanner();
-  if (isToday && data.habits.length) html += heroSerie(doneN, list.length);
+  if (isToday && data.habits.length) html += cardFesta() + heroSerie(doneN, list.length, list.filter(h => !isDone(data, h, ui.viewKey)).map(h => h.name));
   else if (list.length) html += `<p class="muted num" style="margin:8px 0 4px">${doneN} di ${list.length} completate</p>`;
   if (data.habits.length) html += cardCitazione();
 
@@ -120,16 +122,16 @@ function cardDiario() {
 // Riquadro in cima a "Oggi": la serie complessiva (giorni di fila con abbastanza abitudini fatte,
 // secondo la soglia scelta: tutte o circa l'80%), quante ne mancano per continuarla,
 // l'avanzamento di oggi e una frase di incoraggiamento. I messaggi incoraggiano, non rimproverano.
-function heroSerie(doneN, tot) {
+function heroSerie(doneN, tot, mancanti) {
   const { attuale, migliore } = serieComplessiva(data);
   const servono = necessarie(tot, soglia(data)), manca = Math.max(0, servono - doneN);
   const perfetta = tot > 0 && doneN === tot;
   let sotto;
   if (!tot) sotto = 'Oggi niente in programma: la serie resta al sicuro.';
-  else if (perfetta) sotto = 'Giornata perfetta! La serie è salva.';
+  else if (perfetta) sotto = 'La serie è salva: oggi hai fatto tutto.';
   else if (!manca) sotto = `Serie salva! Ne ${tot - doneN === 1 ? 'manca 1' : 'mancano ' + (tot - doneN)} per la giornata perfetta.`;
   else sotto = `Ne ${manca === 1 ? 'manca' : 'mancano'} <strong class="num">${manca}</strong> per ${attuale > 0 ? `continuare la serie (sale a ${attuale + 1})` : 'iniziare una nuova serie'}.`;
-  const frase = fraseMotivazionale({ previste: tot, fatte: doneN, servono, ora: new Date().getHours(), chiaveGiorno: todayKey() });
+  const frase = fraseMotivazionale({ previste: tot, fatte: doneN, servono, mancanti, serie: attuale, ora: new Date().getHours(), chiaveGiorno: todayKey() });
   // con la soglia all'80% una tacca sulla barra segna il punto in cui la serie è salva
   const tacca = tot && servono < tot ? `<b class="tacca" style="left:${servono / tot * 100}%"></b>` : '';
   return `<section class="card hero" aria-label="Serie complessiva">
@@ -143,7 +145,39 @@ function heroSerie(doneN, tot) {
     ${tot ? `<p class="hero-manca">${sotto}</p>
     <div class="hero-oggi"><span class="num">${doneN} di ${tot}</span> completate oggi
       <div class="bar ${perfetta ? 'full' : ''}" aria-hidden="true"><i style="width:${Math.round(doneN / tot * 100)}%"></i>${tacca}</div></div>
-    ${frase ? `<p class="hero-frase">${frase}</p>` : ''}` : `<p class="hero-manca">${sotto}</p>`}
+    ${frase ? `<p class="hero-frase">${esc(frase)}</p>` : ''}` : `<p class="hero-manca">${sotto}</p>`}
+    ${rigaObiettivo()}
+  </section>`;
+}
+
+// Dentro il riquadro della serie: l'obiettivo in corso, oppure l'invito a sceglierne uno.
+function rigaObiettivo() {
+  const p = progressoObiettivo(data);
+  if (!p) return `<button class="goal-cta" data-act="goalOpen">${icon('target', 20)}<span><b>Scegli un obiettivo di serie</b><small>Un traguardo in giorni, con un premio alla fine</small></span></button>`;
+  const premio = data.obiettivo.premio;
+  return `<div class="goal">
+    <div class="row">${icon('target', 20)}<div class="grow"><b>Obiettivo: <span class="num">${p.fatti} di ${p.giorni}</span> giorni</b>
+      <div class="muted small">${p.fatti === 0 ? 'Si parte! Ogni giorno completo è un passo verso il traguardo.' : `Ne ${p.manca === 1 ? 'manca 1' : 'mancano ' + p.manca}.`}</div></div>
+      <button class="linkbtn" data-act="goalOpen" aria-label="Modifica l’obiettivo">Modifica</button></div>
+    <div class="bar gold" aria-hidden="true"><i style="width:${Math.round(p.fatti / p.giorni * 100)}%"></i></div>
+    <div class="goal-premio">${icon(premio ? 'gift' : 'lightbulb', 16)}<span>${premio ? `Premio: <strong>${esc(premio)}</strong>` : 'Premio: una pillola di saggezza'}</span></div>
+  </div>`;
+}
+
+// Festa per un obiettivo appena raggiunto (resta finché non tocchi un pulsante).
+function cardFesta() {
+  const t = daFesteggiare();
+  if (!t) return '';
+  const pill = t.pillola !== null ? PILLOLE[t.pillola % PILLOLE.length] : null;
+  return `<section class="card festa" role="status" aria-labelledby="festa-t">
+    <div class="festa-ico">${icon('trophy', 32)}</div>
+    <h2 id="festa-t">Obiettivo raggiunto!</h2>
+    <p class="festa-num"><b class="num">${t.giorni}</b> giorni di fila</p>
+    ${pill
+      ? `<p><strong>La tua pillola di saggezza:</strong> ${esc(pill.testo)}${pill.fonte ? ` <span class="muted">(${esc(pill.fonte)})</span>` : ''}</p>`
+      : `<p>Il tuo premio: <strong>${esc(t.premio)}</strong>. Te lo sei guadagnato, goditelo!</p>`}
+    <button class="btn block" data-act="festaNuovo">Nuovo obiettivo (${prossimaProposta()} giorni?)</button>
+    <button class="btn sec block" data-act="festaOk">Chiudi</button>
   </section>`;
 }
 

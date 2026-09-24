@@ -17,7 +17,9 @@ const OLDER_STORE = 'habits-tracker-v1'; // prima versione: [{ id, name, log: { 
 
 function defaultData() {
   const t = todayKey();
-  return {
+  // upgrade completa i campi che qui non sono scritti (obiettivo, traguardi…): così i dati
+  // di esempio hanno sempre tutti i campi del formato attuale
+  return upgrade({
     version: CURRENT_VERSION,
     lastBackup: null,
     habits: [
@@ -28,7 +30,7 @@ function defaultData() {
     logs: {},
     journal: {},
     settings: defaultSettings()
-  };
+  });
 }
 
 // ---------- lettura e migrazione ----------

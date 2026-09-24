@@ -9,8 +9,13 @@ Indirizzo: https://lelloclappato.github.io/le-mie-abitudini/
 
 - Abitudini **Sì / No** (es. palestra) e **a quantità** con obiettivo (es. acqua in litri, sonno in ore)
 - Giorni della settimana a scelta per ogni abitudine: nei giorni non previsti non compare
-- **Serie** di giorni consecutivi per ogni abitudine e **complessiva** (giorni con tutte le abitudini previste fatte),
-  con il record. I giorni non previsti non interrompono la serie; oggi non la interrompe finché non è finito
+- **Serie** di giorni consecutivi per ogni abitudine e **complessiva**, con il record. Per la serie complessiva
+  scegli se servono **tutte** le abitudini previste o **circa l'80%**. I giorni non previsti non interrompono la serie;
+  oggi non la interrompe finché non è finito. In "Oggi" vedi quante ne mancano per continuarla
+- **Obiettivo di serie** (7, 14, 21, 30, 66 giorni o a scelta) con un **premio** scelto da te; se non lo scegli,
+  al traguardo ricevi una **pillola di saggezza** (un consiglio pratico sulle abitudini)
+- **Frasi di incoraggiamento** personalizzate (nomi delle abitudini che mancano, momento della giornata)
+  e una **citazione del giorno** con il suo autore
 - **Nota e umore** del giorno (facoltativi, 5 livelli)
 - **Statistiche**: griglia delle ultime 20 settimane, percentuali della settimana e del mese, serie migliore,
   abitudine più costante, confronto tra umore e abitudini
@@ -25,7 +30,10 @@ Indirizzo: https://lelloclappato.github.io/le-mie-abitudini/
 - **Oggi**: le abitudini previste per il giorno. Tocca il cerchio per segnare quelle Sì/No, oppure − e + per le quantità
   (toccando il numero puoi scriverlo a mano). Le frecce cambiano giorno.
 - **Statistiche**: serie attuale, percentuali e la griglia colorata (verde = fatta, corallo = saltata, grigio = non prevista).
-- **Abitudini**: crea, modifica o elimina le abitudini; promemoria; installazione; esporta e importa il backup.
+- **Abitudini**: crea, modifica o elimina le abitudini; regola della serie (100% o 80%); promemoria; installazione;
+  esporta e importa il backup.
+- **Obiettivo di serie**: in "Oggi", nel riquadro della serie, tocca **Scegli un obiettivo di serie**. I giorni si contano
+  da quando lo imposti; se la serie si interrompe, l'obiettivo resta e il conteggio riparte.
 
 Per installarla sul telefono: apri il sito, poi "Aggiungi a schermata Home" (iPhone: pulsante Condividi in Safari;
 Android: menu ⋮ di Chrome → "Installa app").
@@ -92,6 +100,8 @@ all'elenco `FILES` in `sw.js`, altrimenti non sarà disponibile senza connession
   - `migrazione.js`: formato dei dati e conversione dalle versioni vecchie
   - `validazione.js`: controllo dei file di backup
   - `calcoli.js`: giorni previsti, completamento, serie, percentuali, statistiche (funzioni "pure", testate)
+  - `obiettivo.js`: obiettivo di serie, premio e festa al traguardo
+  - `frasi.js`: citazioni del giorno (con autore verificato), frasi di incoraggiamento, pillole di saggezza
   - `pwa.js`: service worker, avviso di aggiornamento, installazione
   - `promemoria.js`: notifiche e numero sull'icona
   - `viste.js`: le schermate Oggi, Statistiche, Abitudini

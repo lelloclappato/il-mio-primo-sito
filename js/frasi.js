@@ -55,55 +55,85 @@ export function citazioneDelGiorno(chiaveGiorno) {
   return CITAZIONI[((n % CITAZIONI.length) + CITAZIONI.length) % CITAZIONI.length];
 }
 
-// ---------- frasi di incoraggiamento ----------
-// Sempre positive: niente sensi di colpa. {n} = quante ne mancano, {s} = la serie che si raggiunge.
-const FRASI = {
-  inizio: [
-    'Un passo alla volta: comincia dalla più facile.',
-    'Oggi è una pagina bianca. Riempila con una piccola vittoria.',
-    'Basta iniziare: il resto viene da sé.',
-    'Scegline una e falla adesso: è il modo più semplice di partire.'
-  ],
-  inCorso: [
-    'Stai andando bene: continua così!',
-    'Ogni spunta conta. Sei sulla strada giusta.',
-    'Bel ritmo! Ancora un po’ e ci sei.',
-    'Stai costruendo qualcosa, un giorno alla volta.'
-  ],
-  unaSola: [
-    'Ultimo sforzo: ne manca una sola!',
-    'Sei a un passo dal traguardo di oggi.',
-    'Ancora una e la giornata è tua.'
-  ],
-  sera: [
-    'La giornata non è finita: c’è ancora tempo.',
-    'Anche un piccolo passo stasera tiene viva la serie.',
-    'Qualche minuto adesso e domani ti ringrazierai.'
-  ],
-  salva: [
-    'Ottimo lavoro! Chiudere anche le ultime sarebbe la ciliegina sulla torta.',
-    'Obiettivo di oggi raggiunto. Vuoi fare filotto?',
-    'Ce l’hai fatta: il resto è un regalo in più per te.'
-  ],
-  completa: [
-    'Giornata completa! Goditi il risultato.',
-    'Tutto fatto: oggi hai mantenuto la parola con te stesso.',
-    'Perfetto! Una giornata così fa crescere l’abitudine.'
-  ]
-};
+// ---------- frasi di incoraggiamento personalizzate ----------
+// Semplici, dirette e sempre positive: niente sensi di colpa.
+// Usano i nomi delle abitudini che mancano e il momento della giornata.
 
-// Sceglie una frase adatta alla situazione di oggi. La scelta dipende dal giorno,
-// così la frase non cambia a ogni tocco ma solo quando cambia la situazione.
-export function fraseMotivazionale({ previste, fatte, servono, ora, chiaveGiorno }) {
-  let gruppo;
-  if (!previste) return '';
-  if (fatte >= previste) gruppo = 'completa';
-  else if (fatte >= servono) gruppo = 'salva';
-  else if (ora >= 19) gruppo = 'sera';
-  else if (servono - fatte === 1) gruppo = 'unaSola';
-  else if (fatte === 0) gruppo = 'inizio';
-  else gruppo = 'inCorso';
-  const lista = FRASI[gruppo];
-  const n = Number(chiaveGiorno.replace(/-/g, '')) % lista.length;
-  return lista[n];
+// momento della giornata dall'ora (0-23)
+export function momento(ora) {
+  if (ora >= 5 && ora < 12) return 'mattina';
+  if (ora >= 12 && ora < 18) return 'pomeriggio';
+  if (ora >= 18 && ora < 22) return 'sera';
+  return 'notte';
 }
+
+// "Lettura", "Lettura e Diario", "Lettura, Diario e Yoga", "Lettura, Diario e altre 2"
+export function elenco(nomi) {
+  if (nomi.length <= 1) return nomi[0] || '';
+  if (nomi.length <= 3) return nomi.slice(0, -1).join(', ') + ' e ' + nomi[nomi.length - 1];
+  return nomi.slice(0, 2).join(', ') + ` e altre ${nomi.length - 2}`;
+}
+
+// Sceglie la frase giusta per la situazione. Parametri:
+//   previste, fatte   → abitudini di oggi
+//   servono           → quante ne servono per la serie (100% o 80%)
+//   mancanti          → nomi delle abitudini non ancora fatte, nell'ordine della lista
+//   serie             → serie complessiva attuale (senza oggi, se oggi non è ancora salvo)
+//   ora               → ora attuale (0-23)
+//   chiaveGiorno      → "AAAA-MM-GG": tra più varianti la scelta cambia ogni giorno, non a ogni tocco
+export function fraseMotivazionale({ previste, fatte, servono, mancanti = [], serie = 0, ora, chiaveGiorno }) {
+  if (!previste) return '';
+  const m = momento(ora), prima = mancanti[0], n = servono - fatte;
+  const varia = lista => lista[Number(chiaveGiorno.replace(/-/g, '')) % lista.length];
+  const obiettivoSerie = serie > 0 ? 'continuare la serie' : 'iniziare la serie';
+
+  // tutto fatto
+  if (fatte >= previste) return m === 'mattina' || m === 'pomeriggio'
+    ? varia(['Tutto fatto, e la giornata è ancora lunga: goditela!', 'Giornata perfetta già adesso. Ottimo lavoro!'])
+    : varia(['Giornata perfetta! Goditi la serata.', 'Tutto fatto: oggi hai mantenuto la promessa fatta a te.']);
+
+  // serie già salva (soglia 80%), mancano solo le ultime
+  if (fatte >= servono) return `Serie al sicuro. Se ti va, chiudi anche ${elenco(mancanti)} per la giornata perfetta.`;
+
+  // ne manca una sola per la serie
+  if (n === 1) return m === 'sera' || m === 'notte'
+    ? `Stasera ti manca solo ${prima} per ${obiettivoSerie}. Pochi minuti e ci sei!`
+    : `Ti manca solo ${prima} per ${obiettivoSerie}!`;
+
+  // appena iniziato: una fatta, spingere a continuare
+  if (fatte === 1) return `Ottimo inizio! Adesso ${prima}, finché sei in ritmo.`;
+
+  // niente ancora fatto
+  if (fatte === 0) return {
+    mattina: varia([`Buongiorno! Parti da ${prima}: il primo passo è il più importante.`, `Buongiorno! Togliti subito ${prima} e la giornata sarà in discesa.`]),
+    pomeriggio: `Il pomeriggio è ancora lungo: comincia da ${prima}.`,
+    sera: `C’è ancora tempo stasera: parti da ${prima}, anche solo per pochi minuti.`,
+    notte: `Giornata piena? Anche solo ${prima} prima di dormire conta.`
+  }[m];
+
+  // a metà strada
+  if (m === 'sera' || m === 'notte') return `Stasera ne mancano ${n} per ${obiettivoSerie}: ${elenco(mancanti.slice(0, n))}. Ce la puoi fare.`;
+  return varia([`Stai andando bene: ${fatte} fatte! Prossima: ${prima}.`, `Bel ritmo! Ne mancano ${n}, a partire da ${prima}.`]);
+}
+
+// ---------- pillole di saggezza ----------
+// Premio per un obiettivo di serie raggiunto senza una ricompensa scelta:
+// consigli pratici sulle abitudini, con l'origine quando è un'idea nota.
+export const PILLOLE = [
+  { testo: 'Aggancia una nuova abitudine a una che fai già: “dopo il caffè del mattino, leggo due pagine”.', fonte: 'l’“habit stacking” di B. J. Fogg e James Clear' },
+  { testo: 'Se un’abitudine ti pesa, falla durare due minuti. Iniziare conta più che fare tanto.', fonte: 'la “regola dei due minuti” di James Clear' },
+  { testo: 'Saltare un giorno capita. Il segreto è non saltarne due di fila.', fonte: 'James Clear, Atomic Habits' },
+  { testo: 'Rendi l’abitudine visibile: le scarpe da corsa vicino alla porta, il libro sul cuscino.' },
+  { testo: 'Rendi le cattive abitudini scomode: il telefono in un’altra stanza vale più di mille buoni propositi.' },
+  { testo: 'In media servono 66 giorni perché un gesto diventi automatico, ma saltarne uno ogni tanto non cambia il risultato.', fonte: 'studio di Phillippa Lally, University College London, 2009' },
+  { testo: 'Decidi in anticipo “quando” e “dove”: “alle 7, in cucina, 10 minuti di stretching”. I piani precisi si rispettano di più.', fonte: 'le “intenzioni di attuazione” di Peter Gollwitzer' },
+  { testo: 'Pensa a chi vuoi essere, non solo a cosa vuoi ottenere: “sono una persona che legge” invece di “devo leggere di più”.', fonte: 'James Clear, Atomic Habits' },
+  { testo: 'Abbina qualcosa che devi fare a qualcosa che ti piace: il tuo podcast preferito solo mentre cammini.', fonte: 'il “temptation bundling” di Katherine Milkman' },
+  { testo: 'Il sonno è il moltiplicatore di tutte le altre abitudini: proteggilo.' },
+  { testo: 'Quando riparti dopo una pausa, riparti in piccolo. Il ritmo torna prima della forza.' },
+  { testo: 'Festeggia subito dopo averla fatta, anche solo con un “ben fatto!”: il cervello ricorda ciò che lo fa stare bene.', fonte: 'B. J. Fogg, Tiny Habits' },
+  { testo: 'Tieni traccia, ma non ossessionarti: il calendario serve a vedere i progressi, non a giudicarti.' },
+  { testo: 'Cambia l’ambiente prima della forza di volontà: frutta sul tavolo, dolci in alto nell’armadio.' },
+  { testo: 'Non aggiungere dieci abitudini insieme. Una alla volta, e la successiva quando la prima va da sola.' },
+  { testo: 'Un obiettivo raggiunto è un buon momento per chiederti: questa abitudine mi fa ancora bene? Tenerla è una scelta, non un obbligo.' }
+];

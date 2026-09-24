@@ -24,7 +24,7 @@ const FILES = [
   './css/style.css', './fonts/plus-jakarta-sans-latin-variabile.woff2', './fonts/fraunces-latin-600.woff2',
   './js/app.js', './js/utili.js', './js/dati.js', './js/calcoli.js', './js/stato.js',
   './js/viste.js', './js/modulo.js', './js/backup.js', './js/icone.js', './js/migrazione.js',
-  './js/validazione.js', './js/pwa.js', './js/promemoria.js', './js/frasi.js'
+  './js/validazione.js', './js/pwa.js', './js/promemoria.js', './js/frasi.js', './js/obiettivo.js'
 ];
 
 self.addEventListener('install', e => {

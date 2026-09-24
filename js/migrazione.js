@@ -4,18 +4,22 @@
 // che porta i dati dalla versione precedente a quella nuova. I passi si applicano in fila:
 // dati v1 → v2 → v3 ... Così anche un backup molto vecchio si può ancora importare.
 //
-// Formato attuale (versione 2):
+// Formato attuale (versione 3):
 // {
-//   version: 2,
+//   version: 3,
 //   lastBackup: "AAAA-MM-GG" | null,
 //   habits:  [{ id, name, type: 'check' | 'qty', target, unit, step, days: [0..6], created: "AAAA-MM-GG" }],
 //   logs:    { "AAAA-MM-GG": { idAbitudine: valore } },      // solo i giorni con qualcosa di segnato
 //   journal: { "AAAA-MM-GG": { mood: 1..5, note: "testo" } }, // nota e umore del giorno (facoltativi)
-//   settings: { reminder: { on: false, time: "20:30" }, soglia: 1 }   // soglia: 1 = tutte, 0.8 = circa l'80%
+//   settings: { reminder: { on: false, time: "20:30" }, soglia: 1 },  // soglia: 1 = tutte, 0.8 = circa l'80%
+//   obiettivo: null | { giorni: 21, premio: "una cena fuori", creato: "AAAA-MM-GG" },  // obiettivo di serie in corso
+//   traguardi: [{ giorni, premio, raggiunto: "AAAA-MM-GG", pillola: numero | null, visto: true | false }]
 // }
 import { todayKey, uid } from './utili.js';
 
-export const CURRENT_VERSION = 2;
+export const CURRENT_VERSION = 3;
+
+const isData = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
 
 export function defaultSettings() {
   return { reminder: { on: false, time: '20:30' }, soglia: 1 };
@@ -27,6 +31,8 @@ export function upgrade(d) {
   const v = Number(d.version) || 1;
   // v1 → v2: nascono il diario (nota e umore) e le impostazioni
   if (v < 2) { d.journal = {}; d.settings = defaultSettings(); }
+  // v2 → v3: nascono l'obiettivo di serie e l'elenco dei traguardi raggiunti
+  if (v < 3) { d.obiettivo = null; d.traguardi = []; }
   // campi mancanti o rovinati: si rimettono i valori predefiniti
   if (!d.journal || typeof d.journal !== 'object' || Array.isArray(d.journal)) d.journal = {};
   // impostazioni: si tengono solo valori sensati, il resto torna al predefinito
@@ -36,9 +42,27 @@ export function upgrade(d) {
     on: r.on === true,
     time: typeof r.time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(r.time) ? r.time : defaultSettings().reminder.time
   }, soglia: s.soglia === 0.8 ? 0.8 : 1 };
+  d.obiettivo = pulisciObiettivo(d.obiettivo);
+  d.traguardi = Array.isArray(d.traguardi) ? d.traguardi.map(pulisciTraguardo).filter(Boolean) : [];
   if (d.lastBackup === undefined) d.lastBackup = null;
   d.version = CURRENT_VERSION;
   return d;
+}
+
+// Obiettivo di serie: da 2 a 365 giorni, premio facoltativo (massimo 60 caratteri). Altrimenti null.
+function pulisciObiettivo(o) {
+  if (!o || typeof o !== 'object') return null;
+  if (!Number.isInteger(o.giorni) || o.giorni < 2 || o.giorni > 365 || !isData(o.creato)) return null;
+  return { giorni: o.giorni, premio: typeof o.premio === 'string' ? o.premio.trim().slice(0, 60) : '', creato: o.creato };
+}
+function pulisciTraguardo(t) {
+  if (!t || typeof t !== 'object' || !Number.isInteger(t.giorni) || t.giorni < 1 || !isData(t.raggiunto)) return null;
+  return {
+    giorni: t.giorni, raggiunto: t.raggiunto,
+    premio: typeof t.premio === 'string' ? t.premio.slice(0, 60) : '',
+    pillola: Number.isInteger(t.pillola) && t.pillola >= 0 ? t.pillola : null,
+    visto: t.visto !== false
+  };
 }
 
 // Converte le abitudini della prima versione dell'app ([{ id, name, log: { data: true } }],

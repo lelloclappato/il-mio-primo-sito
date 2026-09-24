@@ -298,3 +298,26 @@ details.info p { margin: 0 0 8px; }
 .citazione blockquote { margin: 0; font: 600 17px/1.4 var(--font-display); color: var(--text); }
 .citazione figcaption { margin-top: 6px; font-size: 14px; color: var(--gold-text); font-weight: 600; }
 .citazione cite { font-style: normal; font-weight: 500; }
+
+/* ---------- Obiettivo di serie ---------- */
+.ico.inline { display: inline-block; vertical-align: -3px; margin-right: 2px; color: var(--gold); }
+.goal-cta { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; margin-top: 14px; padding: 10px 14px;
+  border: 1px dashed var(--gold); border-radius: 12px; background: var(--gold-soft); color: var(--gold-text); text-align: left; }
+.goal-cta b { display: block; font-size: 15px; }
+.goal-cta small { display: block; font-size: 13px; color: var(--text); opacity: .85; }
+.goal { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.goal > .row > .ico { color: var(--gold); }
+.goal b { font-size: 15px; }
+.goal .linkbtn { flex: none; }
+.bar.gold > i { background: var(--gold); }
+.goal-premio { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 14px; color: var(--gold-text); }
+.goal-premio .ico { color: var(--gold); }
+.seg { grid-template-columns: 1fr 1fr; }
+
+/* ---------- Festa: obiettivo raggiunto ---------- */
+.festa { text-align: center; background: var(--gold-soft); border-color: var(--gold); }
+.festa-ico { width: 64px; height: 64px; margin: 4px auto 6px; border-radius: 50%; background: var(--card); color: var(--gold); display: flex; align-items: center; justify-content: center; }
+.festa h2 { margin: 0; color: var(--gold-text); }
+.festa-num { margin: 4px 0 8px; font-size: 16px; }
+.festa-num b { font: 600 34px/1 var(--font-display); }
+.festa p { margin: 8px 0; }

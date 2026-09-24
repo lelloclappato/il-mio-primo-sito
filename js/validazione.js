@@ -95,7 +95,8 @@ export function controllaBackup(input) {
     version: versione,
     lastBackup: isData(input.lastBackup) ? input.lastBackup : null,
     habits, logs, journal,
-    settings: isOggetto(input.settings) ? input.settings : undefined
+    settings: isOggetto(input.settings) ? input.settings : undefined,
+    obiettivo: input.obiettivo, traguardi: input.traguardi   // upgrade tiene solo i valori sensati
   });
   if (versione < 2) { dati.journal = journal; }
 

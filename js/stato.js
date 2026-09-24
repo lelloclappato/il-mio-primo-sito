@@ -6,5 +6,6 @@ import { todayKey } from './utili.js';
 export const ui = {
   tab: 'oggi',          // 'oggi' | 'stat' | 'hab'
   viewKey: todayKey(),  // giorno mostrato in "Oggi"
-  form: null            // copia dell'abitudine in modifica, oppure null se il modulo è chiuso
+  form: null,           // copia dell'abitudine in modifica, oppure null se il modulo è chiuso
+  goal: null            // bozza dell'obiettivo di serie mentre il suo pannello è aperto
 };

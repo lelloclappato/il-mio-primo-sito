@@ -8,6 +8,8 @@ import {
 } from '../js/calcoli.js';
 import { upgrade } from '../js/migrazione.js';
 import { controllaBackup } from '../js/validazione.js';
+import { serieDal, progressoObiettivo } from '../js/calcoli.js';
+import { fraseMotivazionale, momento, elenco, citazioneDelGiorno, CITAZIONI } from '../js/frasi.js';
 
 const OGGI = new Date(2026, 8, 24); // i mesi partono da 0: 8 = settembre. È un giovedì.
 const k = n => keyOf(addDays(OGGI, -n)); // k(0) = oggi, k(1) = ieri, ...
@@ -19,7 +21,7 @@ function dati(habits, fatti = {}, journal = {}) {
     const h = habits.find(x => x.id === id);
     for (const n of lista) { (logs[k(n)] = logs[k(n)] || {})[id] = h.type === 'qty' ? h.target : 1; }
   }
-  return { version: 2, habits, logs, journal, settings: {} };
+  return { version: 3, habits, logs, journal, settings: {}, obiettivo: null, traguardi: [] };
 }
 const ogniGiorno = (id, creata = 60) => ({ id, name: id, type: 'check', target: 1, unit: '', step: 1, days: [0, 1, 2, 3, 4, 5, 6], created: k(creata) });
 
@@ -128,10 +130,10 @@ test('umore: confronto tra giorni completi e non', () => {
 });
 
 // ---------- migrazione ----------
-test('migrazione v1 → v2: aggiunge diario e impostazioni, tiene i dati', () => {
+test('migrazione v1 → v3: aggiunge diario, impostazioni e obiettivo, tiene i dati', () => {
   const v1 = { version: 1, lastBackup: null, habits: [ogniGiorno('a')], logs: { [k(1)]: { a: 1 } } };
   const v2 = upgrade(v1);
-  uguale([v2.version, v2.journal, v2.settings.reminder.on, v2.logs, v2.habits.length], [2, {}, false, v1.logs, 1]);
+  uguale([v2.version, v2.journal, v2.settings.reminder.on, v2.logs, v2.habits.length, v2.obiettivo, v2.traguardi], [3, {}, false, v1.logs, 1, null, []]);
   uguale(v1.version, 1, 'l’originale non deve cambiare');
 });
 test('migrazione: dati v2 con impostazioni incomplete vengono completati', () => {
@@ -143,7 +145,7 @@ test('migrazione: dati v2 con impostazioni incomplete vengono completati', () =>
 });
 
 // ---------- controllo dei backup ----------
-const buono = () => ({ version: 2, lastBackup: k(3), habits: [ogniGiorno('a'), { ...ogniGiorno('b'), type: 'qty', target: 2, unit: 'L', step: 0.5 }],
+const buono = () => ({ version: 3, lastBackup: k(3), habits: [ogniGiorno('a'), { ...ogniGiorno('b'), type: 'qty', target: 2, unit: 'L', step: 0.5 }],
   logs: { [k(1)]: { a: 1, b: 1.5 }, [k(2)]: { a: 1 } }, journal: { [k(1)]: { mood: 4, note: 'ok' } }, settings: { reminder: { on: true, time: '21:00' } } });
 test('backup valido: accettato con riepilogo', () => {
   const c = controllaBackup(buono());
@@ -180,7 +182,7 @@ test('backup: valori strani vengono ignorati con un avviso', () => {
 test('backup: versione 1 (senza diario) viene convertita', () => {
   const d = buono(); d.version = 1; delete d.journal; delete d.settings;
   const c = controllaBackup(d);
-  uguale([c.ok, c.dati.version, c.dati.journal, c.dati.settings.reminder.on], [true, 2, {}, false]);
+  uguale([c.ok, c.dati.version, c.dati.journal, c.dati.settings.reminder.on], [true, 3, {}, false]);
 });
 test('backup: formato della prima versione (lista)', () => {
   const c = controllaBackup([{ id: 'x', name: 'Yoga', log: { [k(1)]: true } }]);
@@ -188,6 +190,58 @@ test('backup: formato della prima versione (lista)', () => {
 });
 test('impostazioni: un orario non valido torna al predefinito', () => {
   uguale(upgrade({ version: 2, habits: [], logs: {}, settings: { reminder: { on: 'sì', time: '25:99' } } }).settings.reminder, { on: false, time: '20:30' });
+});
+
+// ---------- obiettivo di serie ----------
+test('obiettivo: contano solo i giorni da quando è stato impostato', () => {
+  const a = ogniGiorno('a');
+  const d = dati([a], { a: [1, 2, 3, 4, 5, 6] });
+  uguale(serieDal(d, k(2), OGGI), 2);                 // impostato 2 giorni fa: 2 giorni completi
+  d.obiettivo = { giorni: 7, premio: 'cinema', creato: k(2) };
+  uguale(progressoObiettivo(d, OGGI), { fatti: 2, giorni: 7, manca: 5, raggiunto: false });
+});
+test('obiettivo: raggiunto', () => {
+  const a = ogniGiorno('a');
+  const d = dati([a], { a: [0, 1, 2] });
+  d.obiettivo = { giorni: 3, premio: '', creato: k(2) };
+  uguale(progressoObiettivo(d, OGGI).raggiunto, true);
+});
+test('obiettivo: se la serie si interrompe il conteggio riparte', () => {
+  const a = ogniGiorno('a');
+  const d = dati([a], { a: [1, 3, 4] });              // l'altro ieri saltato
+  d.obiettivo = { giorni: 7, premio: '', creato: k(5) };
+  uguale(progressoObiettivo(d, OGGI).fatti, 1);
+});
+test('obiettivo: nessun obiettivo → null', () => uguale(progressoObiettivo(dati([ogniGiorno('a')]), OGGI), null));
+test('dati: obiettivo e traguardi non validi vengono scartati', () => {
+  const r = upgrade({ version: 3, habits: [], logs: {}, obiettivo: { giorni: 1000, creato: k(1) },
+    traguardi: [{ giorni: 7, raggiunto: k(3), premio: 'x' }, { giorni: 'tanti' }, null] });
+  uguale([r.obiettivo, r.traguardi], [null, [{ giorni: 7, raggiunto: k(3), premio: 'x', pillola: null, visto: true }]]);
+  uguale(upgrade({ version: 3, habits: [], logs: {}, obiettivo: { giorni: 21, premio: '  cena  ', creato: k(1) } }).obiettivo, { giorni: 21, premio: 'cena', creato: k(1) });
+});
+test('backup: l’obiettivo viene importato', () => {
+  const d = buono(); d.obiettivo = { giorni: 14, premio: 'libro', creato: k(2) };
+  uguale(controllaBackup(d).dati.obiettivo, { giorni: 14, premio: 'libro', creato: k(2) });
+});
+
+// ---------- frasi ----------
+const F = (fatte, servono, mancanti, ora, serie = 3) => fraseMotivazionale({ previste: 4, fatte, servono, mancanti, serie, ora, chiaveGiorno: '2026-09-24' });
+test('frasi: momento della giornata', () => uguale([6, 13, 20, 23, 3].map(momento), ['mattina', 'pomeriggio', 'sera', 'notte', 'notte']));
+test('frasi: elenco dei nomi', () => {
+  uguale([elenco(['A']), elenco(['A', 'B']), elenco(['A', 'B', 'C']), elenco(['A', 'B', 'C', 'D'])], ['A', 'A e B', 'A, B e C', 'A, B e altre 2']);
+});
+test('frasi: di sera, ne manca una per la serie → la nomina', () => {
+  uguale(F(3, 4, ['Diario'], 20), 'Stasera ti manca solo Diario per continuare la serie. Pochi minuti e ci sei!');
+});
+test('frasi: appena iniziato → spinge a continuare con la prossima', () => {
+  uguale(F(1, 4, ['Lettura', 'Yoga', 'Diario'], 10), 'Ottimo inizio! Adesso Lettura, finché sei in ritmo.');
+});
+test('frasi: niente fatto di pomeriggio', () => uguale(F(0, 4, ['Lettura'], 15), 'Il pomeriggio è ancora lungo: comincia da Lettura.'));
+test('frasi: serie salva all’80%', () => uguale(F(3, 3, ['Yoga'], 10), 'Serie al sicuro. Se ti va, chiudi anche Yoga per la giornata perfetta.'));
+test('frasi: senza serie dice "iniziare"', () => uguale(F(3, 4, ['Diario'], 10, 0), 'Ti manca solo Diario per iniziare la serie!'));
+test('citazione del giorno: cambia ogni giorno e ha sempre un autore', () => {
+  uguale(citazioneDelGiorno('2026-09-24') !== citazioneDelGiorno('2026-09-25'), true);
+  uguale(CITAZIONI.every(c => c.testo && c.autore), true);
 });
 
 esegui();
