@@ -1,9 +1,21 @@
-# Il mio primo sito
+# Le mie abitudini
 
-Questo è il mio primo progetto pubblicato su GitHub: una semplice pagina web personale costruita con HTML e CSS puro, senza framework.
+Una piccola app web per tracciare le abitudini quotidiane, costruita con HTML, CSS e JavaScript puro, senza framework né build step.
 
-Questo è il codice del mio sito web personale, creato per fare pratica con Git e GitHub.
+## Funzionalità
 
-## Come vederlo
+- Aggiungi abitudini da seguire ogni giorno
+- Segna il completamento per gli ultimi 7 giorni con un tap
+- Streak (giorni consecutivi) calcolata automaticamente per ogni abitudine
+- Statistiche generali: abitudini attive, % completate oggi, streak migliore
+- Dati salvati nel browser (`localStorage`): niente server, niente account
 
-Apri il file `index.html` in un browser.
+## Come vederla
+
+Apri il file `index.html` in un browser, oppure servi la cartella con un semplice server statico (es. `python3 -m http.server`).
+
+## Struttura
+
+- `index.html` — markup dell'app
+- `style.css` — stile
+- `app.js` — logica (gestione abitudini, streak, persistenza)
