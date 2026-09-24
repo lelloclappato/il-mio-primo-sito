@@ -59,7 +59,8 @@ export function controllaBackup(input) {
       target: h.type === 'qty' ? h.target : 1,
       unit: h.type === 'qty' && typeof h.unit === 'string' ? h.unit.slice(0, 12) : '',
       step: h.type === 'qty' ? (numPos(h.step) ? h.step : 1) : 1,
-      days: [...new Set(h.days)].sort(), created: h.created
+      days: [...new Set(h.days)].sort(), created: h.created,
+      diff: [1, 2, 3].includes(h.diff) ? h.diff : 2
     });
   });
   if (errori.length) return fine();
@@ -96,7 +97,7 @@ export function controllaBackup(input) {
     lastBackup: isData(input.lastBackup) ? input.lastBackup : null,
     habits, logs, journal,
     settings: isOggetto(input.settings) ? input.settings : undefined,
-    obiettivo: input.obiettivo, traguardi: input.traguardi   // upgrade tiene solo i valori sensati
+    obiettivo: input.obiettivo, traguardi: input.traguardi, gioco: input.gioco   // upgrade tiene solo i valori sensati
   });
   if (versione < 2) { dati.journal = journal; }
 

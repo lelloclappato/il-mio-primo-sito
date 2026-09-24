@@ -4,20 +4,22 @@
 // che porta i dati dalla versione precedente a quella nuova. I passi si applicano in fila:
 // dati v1 → v2 → v3 ... Così anche un backup molto vecchio si può ancora importare.
 //
-// Formato attuale (versione 3):
+// Formato attuale (versione 4):
 // {
-//   version: 3,
+//   version: 4,
 //   lastBackup: "AAAA-MM-GG" | null,
-//   habits:  [{ id, name, type: 'check' | 'qty', target, unit, step, days: [0..6], created: "AAAA-MM-GG" }],
+//   habits:  [{ id, name, type: 'check' | 'qty', target, unit, step, days: [0..6], created: "AAAA-MM-GG",
+//               diff: 1 | 2 | 3 }],                            // difficoltà: facile, media, difficile
 //   logs:    { "AAAA-MM-GG": { idAbitudine: valore } },      // solo i giorni con qualcosa di segnato
 //   journal: { "AAAA-MM-GG": { mood: 1..5, note: "testo" } }, // nota e umore del giorno (facoltativi)
 //   settings: { reminder: { on: false, time: "20:30" }, soglia: 1 },  // soglia: 1 = tutte, 0.8 = circa l'80%
 //   obiettivo: null | { giorni: 21, premio: "una cena fuori", creato: "AAAA-MM-GG" },  // obiettivo di serie in corso
-//   traguardi: [{ giorni, premio, raggiunto: "AAAA-MM-GG", pillola: numero | null, visto: true | false }]
+//   traguardi: [{ giorni, premio, raggiunto: "AAAA-MM-GG", pillola: numero | null, visto: true | false }],
+//   gioco: { nome: "", nomeChiesto: false, coriandoli: true, medaglieViste: [id], stadioVisto: 0, iniziato: false }
 // }
 import { todayKey, uid } from './utili.js';
 
-export const CURRENT_VERSION = 3;
+export const CURRENT_VERSION = 4;
 
 const isData = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
 
@@ -33,6 +35,10 @@ export function upgrade(d) {
   if (v < 2) { d.journal = {}; d.settings = defaultSettings(); }
   // v2 → v3: nascono l'obiettivo di serie e l'elenco dei traguardi raggiunti
   if (v < 3) { d.obiettivo = null; d.traguardi = []; }
+  // v3 → v4: difficoltà delle abitudini e stato del gioco della pianta
+  if (v < 4) { d.gioco = null; }
+  if (Array.isArray(d.habits)) for (const h of d.habits) if (h && ![1, 2, 3].includes(h.diff)) h.diff = 2;
+  d.gioco = pulisciGioco(d.gioco);
   // campi mancanti o rovinati: si rimettono i valori predefiniti
   if (!d.journal || typeof d.journal !== 'object' || Array.isArray(d.journal)) d.journal = {};
   // impostazioni: si tengono solo valori sensati, il resto torna al predefinito
@@ -55,6 +61,20 @@ function pulisciObiettivo(o) {
   if (!Number.isInteger(o.giorni) || o.giorni < 2 || o.giorni > 365 || !isData(o.creato)) return null;
   return { giorni: o.giorni, premio: typeof o.premio === 'string' ? o.premio.trim().slice(0, 60) : '', creato: o.creato };
 }
+// Stato del gioco: nome della pianta (massimo 20 caratteri, vuoto = "Pianta"), coriandoli sì/no,
+// medaglie e stadio già festeggiati (per non festeggiarli due volte).
+export function pulisciGioco(g) {
+  g = g && typeof g === 'object' && !Array.isArray(g) ? g : {};
+  return {
+    nome: typeof g.nome === 'string' ? g.nome.trim().slice(0, 20) : '',
+    nomeChiesto: g.nomeChiesto === true,
+    coriandoli: g.coriandoli !== false,
+    medaglieViste: Array.isArray(g.medaglieViste) ? g.medaglieViste.filter(x => typeof x === 'string').slice(0, 500) : [],
+    stadioVisto: Number.isInteger(g.stadioVisto) && g.stadioVisto >= 0 ? g.stadioVisto : 0,
+    iniziato: g.iniziato === true
+  };
+}
+
 function pulisciTraguardo(t) {
   if (!t || typeof t !== 'object' || !Number.isInteger(t.giorni) || t.giorni < 1 || !isData(t.raggiunto)) return null;
   return {

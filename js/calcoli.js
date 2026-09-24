@@ -4,6 +4,7 @@
 // e, dove serve, la data di "oggi". Si chiamano funzioni "pure": a parità di ingresso danno
 // sempre lo stesso risultato. Per questo si possono provare con dati inventati (vedi tests/).
 import { keyOf, addDays, dateOf, DAYS, DAY_ORDER } from './utili.js';
+import { CONFIG } from './gioco/config.js';
 
 // Quota di abitudini previste da completare perché un giorno conti nella serie complessiva.
 // Si sceglie nella scheda Abitudini ed è salvata in d.settings.soglia: 1 = tutte, 0.8 = circa l'80%.
@@ -34,6 +35,7 @@ export function scheduled(h, day) { return h.days.includes(day.getDay()) && keyO
 //   'si' = previsto e completato    → la serie cresce
 //   'no' = previsto e non fatto      → la serie si azzera
 //   '-'  = non previsto              → si salta, la serie non si interrompe
+//   'salv' = salvato dal salvagente  → come '-': non conta, ma non interrompe (solo serie complessiva)
 // Oggi, se non è ancora fatto, vale '-': la giornata non è finita.
 
 // Riceve gli stati dal giorno più vecchio a oggi e restituisce la serie attuale e la migliore.
@@ -83,19 +85,38 @@ export function serieAbitudine(d, h, oggi = new Date()) {
   return serieDaStati(giorni(h.created, oggi).map(g => statoAbitudine(d, h, g, ok)));
 }
 
+// Stati complessivi di tutti i giorni, dal primo a oggi, con il SALVAGENTE già applicato:
+// il primo giorno mancato di ogni mese (fino a CONFIG.salvagentiAlMese), se c'è una serie
+// in corso da proteggere, diventa 'salv' invece di 'no'. Restituisce [{ k, g, s, previste, fatte }].
+export function statiComplessivi(d, oggi = new Date()) {
+  if (!d.habits.length) return [];
+  const ok = keyOf(oggi), usati = {};
+  let serie = 0;
+  return giorni(primoGiorno(d), oggi).map(g => {
+    const k = keyOf(g), { previste, fatte } = riepilogoGiorno(d, g);
+    let s = statoGiorno(d, g, ok);
+    if (s === 'no' && serie > 0) {
+      const mese = k.slice(0, 7);
+      if ((usati[mese] || 0) < CONFIG.salvagentiAlMese) { usati[mese] = (usati[mese] || 0) + 1; s = 'salv'; }
+    }
+    if (s === 'si') serie++; else if (s === 'no') serie = 0;
+    return { k, g, s, previste, fatte };
+  });
+}
+
+// giorni in cui è scattato il salvagente (chiavi AAAA-MM-GG)
+export function giorniSalvagente(d, oggi = new Date()) {
+  return statiComplessivi(d, oggi).filter(x => x.s === 'salv').map(x => x.k);
+}
+
 export function serieComplessiva(d, oggi = new Date()) {
-  if (!d.habits.length) return { attuale: 0, migliore: 0 };
-  const ok = keyOf(oggi);
-  return serieDaStati(giorni(primoGiorno(d), oggi).map(g => statoGiorno(d, g, ok)));
+  return serieDaStati(statiComplessivi(d, oggi).map(x => x.s));
 }
 
 // Serie complessiva contando solo i giorni da "daKey" in poi (per l'obiettivo di serie:
 // i giorni fatti prima di impostarlo non contano).
 export function serieDal(d, daKey, oggi = new Date()) {
-  if (!d.habits.length) return 0;
-  const start = [primoGiorno(d), daKey].sort()[1], ok = keyOf(oggi); // il più recente dei due
-  if (start > ok) return 0;
-  return serieDaStati(giorni(start, oggi).map(g => statoGiorno(d, g, ok))).attuale;
+  return serieDaStati(statiComplessivi(d, oggi).filter(x => x.k >= daKey).map(x => x.s)).attuale;
 }
 
 // Avanzamento dell'obiettivo di serie: { fatti, giorni, manca, raggiunto } oppure null se non c'è.
