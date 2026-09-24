@@ -4,7 +4,7 @@
 // che dice cosa fare al tocco: lo legge app.js.
 import { keyOf, todayKey, dateOf, addDays, weekStart, fmt, esc, DAYS_FULL, MONTHS, APP_VERSION } from './utili.js';
 import { data, getVal, migrationNote } from './dati.js';
-import { scheduled, isDone, streak, rate, daysLabel } from './calcoli.js';
+import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, daysLabel } from './calcoli.js';
 import { ui } from './stato.js';
 import { icon } from './icone.js';
 
@@ -66,7 +66,7 @@ function viewOggi() {
   const label = isToday ? 'Oggi' : ui.viewKey === keyOf(addDays(new Date(), -1)) ? 'Ieri' : DAYS_FULL[d.getDay()];
   const list = data.habits.filter(h => scheduled(h, d));
   const hidden = data.habits.length - list.length;
-  const doneN = list.filter(h => isDone(h, ui.viewKey)).length;
+  const doneN = list.filter(h => isDone(data, h, ui.viewKey)).length;
   let html = `<h1>${label}</h1>
   <div class="datebar">
     <button class="ibtn" data-act="day" data-n="-1" aria-label="Giorno prima">${icon('chevronLeft')}</button>
@@ -75,7 +75,8 @@ function viewOggi() {
   </div>`;
   if (!isToday) html += `<button class="btn sec block" data-act="goToday" style="margin:0 0 6px">Torna a oggi</button>`;
   html += migrationBanner() + backupBanner();
-  if (list.length) html += `<p class="muted num" style="margin:8px 0 4px">${doneN} di ${list.length} completate</p>`;
+  if (isToday && data.habits.length) html += heroSerie(doneN, list.length);
+  else if (list.length) html += `<p class="muted num" style="margin:8px 0 4px">${doneN} di ${list.length} completate</p>`;
 
   if (!data.habits.length) {
     html += empty('sprout', 'Nessuna abitudine, per ora',
@@ -89,9 +90,32 @@ function viewOggi() {
   return html;
 }
 
+// Riquadro in cima a "Oggi": la serie complessiva (giorni di fila con tutte le abitudini previste
+// completate) e l'avanzamento di oggi. I messaggi incoraggiano, non rimproverano.
+function heroSerie(doneN, tot) {
+  const { attuale, migliore } = serieComplessiva(data);
+  const completa = tot > 0 && doneN === tot;
+  let sotto;
+  if (!tot) sotto = 'Oggi niente in programma: la serie resta al sicuro.';
+  else if (completa) sotto = 'Giornata completa! La serie è salva.';
+  else if (attuale === 0) sotto = 'Completa le abitudini di oggi per iniziare una nuova serie.';
+  else sotto = `Completa le abitudini di oggi per arrivare a ${attuale + 1}.`;
+  return `<section class="card hero" aria-label="Serie complessiva">
+    <div class="row">
+      <div class="hero-ico">${icon('flame', 28)}</div>
+      <div class="grow">
+        <div class="hero-num"><b class="num">${attuale}</b> ${attuale === 1 ? 'giorno' : 'giorni'} di fila</div>
+        <div class="muted small">${migliore > attuale ? `Record: ${migliore} · ` : attuale > 0 ? 'È il tuo record · ' : ''}${sotto}</div>
+      </div>
+    </div>
+    ${tot ? `<div class="hero-oggi"><span class="num">${doneN} di ${tot}</span> completate oggi
+      <div class="bar ${completa ? 'full' : ''}" aria-hidden="true"><i style="width:${Math.round(doneN / tot * 100)}%"></i></div></div>` : ''}
+  </section>`;
+}
+
 // scheda di una singola abitudine in "Oggi"
 function cardOggi(h) {
-  const v = getVal(h.id, ui.viewKey), s = streak(h), name = esc(h.name);
+  const v = getVal(h.id, ui.viewKey), s = serieAbitudine(data, h).attuale, name = esc(h.name);
   const badge = s > 0
     ? `<span class="badge" title="Serie: ${s} ${s === 1 ? 'giorno' : 'giorni'} di fila">${icon('flame', 16)}<span class="num">${s}</span><span class="sr-only"> ${s === 1 ? 'giorno' : 'giorni'} di fila</span></span>`
     : '';
@@ -109,7 +133,7 @@ function cardOggi(h) {
       <button class="val" data-act="edit-val" data-id="${h.id}" aria-label="${name}: ${fmt(v)} di ${fmt(h.target)} ${unit}. Tocca per scrivere il valore">${fmt(v)} <small>/ ${fmt(h.target)} ${unit}</small></button>
       <button class="ibtn" data-act="inc" data-id="${h.id}" aria-label="${name}: più ${fmt(h.step)} ${unit}">${icon('plus')}</button>
     </div>
-    <div class="bar ${isDone(h, ui.viewKey) ? 'full' : ''}" aria-hidden="true"><i style="width:${pct}%"></i></div></div>`;
+    <div class="bar ${isDone(data, h, ui.viewKey) ? 'full' : ''}" aria-hidden="true"><i style="width:${pct}%"></i></div></div>`;
 }
 
 // ---------- Statistiche ----------
@@ -118,20 +142,20 @@ function viewStat() {
   const now = new Date(), ws = weekStart(now), ms = new Date(now.getFullYear(), now.getMonth(), 1);
   let html = `<h1>Statistiche</h1><p class="muted">Contano solo i giorni in cui l’abitudine era prevista.</p>`;
   for (const h of data.habits) {
-    const w = rate(h, ws, now), m = rate(h, ms, now);
+    const w = percentuale(data, h, ws, now), m = percentuale(data, h, ms, now);
     // griglia degli ultimi 28 giorni, dal più vecchio a oggi
     let cells = '', nDone = 0, nMiss = 0;
     for (let i = 27; i >= 0; i--) {
       const d = addDays(now, -i), k = keyOf(d);
       let c = '';
-      if (scheduled(h, d)) c = isDone(h, k) ? 'done' : (i === 0 ? '' : 'miss');
+      if (scheduled(h, d)) c = isDone(data, h, k) ? 'done' : (i === 0 ? '' : 'miss');
       if (c === 'done') nDone++; if (c === 'miss') nMiss++;
       cells += `<i class="${c}${i === 0 ? ' today' : ''}" title="${k}"></i>`;
     }
     html += `<div class="card">
       <div class="title">${esc(h.name)}</div><div class="muted">${daysLabel(h)}</div>
       <div class="stats">
-        <div><b>${streak(h)}</b><span>serie attuale</span></div>
+        <div><b>${serieAbitudine(data, h).attuale}</b><span>serie attuale</span></div>
         <div><b>${w === null ? '–' : w + '%'}</b><span>questa settimana</span></div>
         <div><b>${m === null ? '–' : m + '%'}</b><span>questo mese</span></div>
       </div>

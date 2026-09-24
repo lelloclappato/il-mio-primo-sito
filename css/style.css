@@ -214,3 +214,13 @@ input[type=text], input[type=number], select { width: 100%; min-height: 48px; fo
   *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
   .btn:active, .ibtn:active, .check:active, .days button:active, .linkbtn:active, .qty .val:active { transform: none; }
 }
+
+/* ---------- Riquadro della serie in "Oggi" ---------- */
+.hero { padding: 16px; }
+.hero-ico { width: 52px; height: 52px; flex: none; border-radius: 50%; background: var(--gold-soft); color: var(--gold);
+  display: flex; align-items: center; justify-content: center; }
+.hero-num { font-weight: 600; font-size: 17px; }
+.hero-num b { font: 600 30px/1 var(--font-display); margin-right: 2px; }
+.hero-oggi { margin-top: 14px; font-size: 14px; color: var(--muted); }
+.hero-oggi .num { color: var(--text); font-weight: 700; }
+.hero-oggi .bar { margin-top: 6px; }

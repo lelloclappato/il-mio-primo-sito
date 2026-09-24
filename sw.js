@@ -5,7 +5,7 @@ const FILES = [
   './', './index.html', './manifest.json', './icon-192.png', './icon-512.png',
   './css/style.css', './fonts/plus-jakarta-sans-latin-variabile.woff2', './fonts/fraunces-latin-600.woff2',
   './js/app.js', './js/utili.js', './js/dati.js', './js/calcoli.js', './js/stato.js',
-  './js/viste.js', './js/modulo.js', './js/backup.js', './js/icone.js'
+  './js/viste.js', './js/modulo.js', './js/backup.js', './js/icone.js', './js/migrazione.js'
 ];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
