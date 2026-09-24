@@ -5,6 +5,7 @@
 // e in base al suo valore decide cosa fare. Così funziona anche con l'HTML ridisegnato da render().
 import { todayKey, keyOf, dateOf, addDays, fmt, uid } from './utili.js';
 import { data, save, getVal, setVal, clearMigrationNote } from './dati.js';
+import { isDone } from './calcoli.js';
 import { ui } from './stato.js';
 import { render, annuncia } from './viste.js';
 import { openForm, renderForm, syncForm, closeForm } from './modulo.js';
@@ -29,9 +30,9 @@ document.addEventListener('click', e => {
     case 'goToday': ui.viewKey = todayKey(); render(); break;
     case 'dismissNote': clearMigrationNote(); render(); break;
     // --- segnare le abitudini ---
-    case 'toggle':
-      setVal(id, ui.viewKey, getVal(id, ui.viewKey) ? 0 : 1); render();
-      annuncia(`${h.name}: ${getVal(id, ui.viewKey) ? 'fatta' : 'da fare'}`);
+    case 'toggle': // se è fatta la si toglie, altrimenti la si segna
+      setVal(id, ui.viewKey, isDone(data, h, ui.viewKey) ? 0 : 1); render();
+      annuncia(`${h.name}: ${isDone(data, h, ui.viewKey) ? 'fatta' : 'da fare'}`);
       break;
     case 'inc': case 'dec':
       setVal(id, ui.viewKey, getVal(id, ui.viewKey) + (act === 'inc' ? h.step : -h.step)); render();
@@ -84,11 +85,11 @@ document.addEventListener('click', e => {
 
 // cambiando il tipo (Sì/No ↔ Quantità) cambiano i campi mostrati nel pannello
 document.addEventListener('change', e => {
-  if (e.target.id === 'f-type' && ui.form) {
+  if (e.target.name === 'f-type' && ui.form) {
     syncForm(); ui.form.type = e.target.value;
     if (ui.form.type === 'qty' && !(ui.form.target > 1)) { ui.form.target = ui.form.target || 1; }
     renderForm();
-    document.getElementById('f-type').focus();
+    document.querySelector(`input[name="f-type"][value="${ui.form.type}"]`).focus();
   }
 });
 

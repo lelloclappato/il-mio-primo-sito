@@ -120,8 +120,9 @@ function cardOggi(h) {
     ? `<span class="badge" title="Serie: ${s} ${s === 1 ? 'giorno' : 'giorni'} di fila">${icon('flame', 16)}<span class="num">${s}</span><span class="sr-only"> ${s === 1 ? 'giorno' : 'giorni'} di fila</span></span>`
     : '';
   if (h.type === 'check') {
+    const fatta = isDone(data, h, ui.viewKey);
     return `<div class="card row">
-      <button class="check ${v ? 'on' : ''}" data-act="toggle" data-id="${h.id}" aria-pressed="${v ? 'true' : 'false'}" aria-label="${name}: fatta">${icon('check', 28)}</button>
+      <button class="check ${fatta ? 'on' : ''}" data-act="toggle" data-id="${h.id}" aria-pressed="${fatta}" aria-label="${name}: fatta">${icon('check', 28)}</button>
       <div class="grow"><div class="title">${name}</div><div class="muted">${daysLabel(h)}</div></div>${badge}</div>`;
   }
   const pct = Math.min(100, Math.round(v / h.target * 100));

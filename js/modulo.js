@@ -22,8 +22,10 @@ export function renderForm() {
   document.getElementById('modal').innerHTML = `<div class="modal" data-act="closeBg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="f-title">
     <div class="row"><h1 class="grow" id="f-title" tabindex="-1">${f.id ? 'Modifica' : 'Nuova'} abitudine</h1><button class="ibtn" data-act="closeForm" aria-label="Chiudi">${icon('x')}</button></div>
     <label for="f-name">Nome</label><input type="text" id="f-name" value="${esc(f.name)}" placeholder="es. Lettura" maxlength="40" autocomplete="off">
-    <label for="f-type">Tipo</label>
-    <select id="f-type"><option value="check" ${!q ? 'selected' : ''}>Sì / No (fatta o no)</option><option value="qty" ${q ? 'selected' : ''}>Quantità (con obiettivo)</option></select>
+    <fieldset class="seg"><legend>Tipo</legend>
+      <label><input type="radio" name="f-type" value="check" ${!q ? 'checked' : ''}><span><b>Sì / No</b><small>Fatta o non fatta, es. palestra</small></span></label>
+      <label><input type="radio" name="f-type" value="qty" ${q ? 'checked' : ''}><span><b>Quantità</b><small>Con un obiettivo, es. 2 L d’acqua</small></span></label>
+    </fieldset>
     ${q ? `<label for="f-target">Obiettivo giornaliero</label><input type="number" inputmode="decimal" id="f-target" value="${f.target}" min="0" step="any">
     <label for="f-unit">Unità</label><input type="text" id="f-unit" value="${esc(f.unit)}" placeholder="es. L, ore, pagine" maxlength="12" autocomplete="off">
     <label for="f-step">Quanto cambia ogni tocco su + e −</label><input type="number" inputmode="decimal" id="f-step" value="${f.step}" min="0" step="any">` : ''}
