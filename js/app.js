@@ -6,7 +6,7 @@
 import { todayKey, keyOf, dateOf, addDays, fmt, uid } from './utili.js';
 import { data, save, getVal, setVal, clearMigrationNote } from './dati.js';
 import { ui } from './stato.js';
-import { render } from './viste.js';
+import { render, annuncia } from './viste.js';
 import { openForm, renderForm, syncForm, closeForm } from './modulo.js';
 import { exportBackup, askImport, setupImport } from './backup.js';
 
@@ -15,7 +15,7 @@ document.addEventListener('click', e => {
   if (!el) return;
   const act = el.dataset.act, id = el.dataset.id;
   const h = id ? data.habits.find(x => x.id === id) : null;
-  if (['export', 'fall', 'fwork'].includes(act) || el.tagName === 'A') e.preventDefault();
+  if (el.tagName === 'A') e.preventDefault();
   // tocco sullo sfondo scuro del pannello (non sul pannello stesso): chiudi
   if (act === 'closeBg') { if (e.target === el) closeForm(); return; }
   switch (act) {
@@ -29,16 +29,22 @@ document.addEventListener('click', e => {
     case 'goToday': ui.viewKey = todayKey(); render(); break;
     case 'dismissNote': clearMigrationNote(); render(); break;
     // --- segnare le abitudini ---
-    case 'toggle': setVal(id, ui.viewKey, getVal(id, ui.viewKey) ? 0 : 1); render(); break;
-    case 'inc': setVal(id, ui.viewKey, getVal(id, ui.viewKey) + h.step); render(); break;
-    case 'dec': setVal(id, ui.viewKey, getVal(id, ui.viewKey) - h.step); render(); break;
+    case 'toggle':
+      setVal(id, ui.viewKey, getVal(id, ui.viewKey) ? 0 : 1); render();
+      annuncia(`${h.name}: ${getVal(id, ui.viewKey) ? 'fatta' : 'da fare'}`);
+      break;
+    case 'inc': case 'dec':
+      setVal(id, ui.viewKey, getVal(id, ui.viewKey) + (act === 'inc' ? h.step : -h.step)); render();
+      annuncia(`${h.name}: ${fmt(getVal(id, ui.viewKey))} di ${fmt(h.target)} ${h.unit}`);
+      break;
     case 'edit-val': {
       const r = prompt(`${h.name}: quanto hai fatto? (${h.unit})`, fmt(getVal(id, ui.viewKey)));
-      if (r !== null) { const n = parseFloat(r.replace(',', '.')); if (!isNaN(n) && n >= 0) { setVal(id, ui.viewKey, n); render(); } }
+      if (r !== null) { const n = parseFloat(r.replace(',', '.')); if (!isNaN(n) && n >= 0) { setVal(id, ui.viewKey, n); render(); annuncia(`${h.name}: ${fmt(n)} di ${fmt(h.target)} ${h.unit}`); } }
       break;
     }
     // --- pannello crea/modifica ---
     case 'new': openForm(null); break;
+    case 'newFromEmpty': ui.tab = 'hab'; render(); openForm(null); break;
     case 'edit': openForm(h); break;
     case 'closeForm': closeForm(); break;
     case 'fday': {
@@ -60,7 +66,7 @@ document.addEventListener('click', e => {
       f.name = f.name.trim();
       if (f.id) { const i = data.habits.findIndex(x => x.id === f.id); data.habits[i] = f; }
       else { f.id = uid(); data.habits.push(f); }
-      save(); closeForm(); render(); break;
+      save(); closeForm(); render(); annuncia(`Abitudine “${f.name}” salvata`); break;
     }
     case 'delete':
       if (confirm(`Eliminare “${ui.form.name}” e tutto il suo storico?`)) {
@@ -82,7 +88,13 @@ document.addEventListener('change', e => {
     syncForm(); ui.form.type = e.target.value;
     if (ui.form.type === 'qty' && !(ui.form.target > 1)) { ui.form.target = ui.form.target || 1; }
     renderForm();
+    document.getElementById('f-type').focus();
   }
+});
+
+// tasto Esc: chiude il pannello
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && ui.form) closeForm();
 });
 
 // quando si torna all'app (es. il giorno dopo), ridisegna per aggiornare le date
