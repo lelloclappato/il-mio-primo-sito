@@ -8,6 +8,7 @@ import { scheduled, isDone, serieAbitudine, serieComplessiva, percentuale, perce
 import { ui } from './stato.js';
 import { icon } from './icone.js';
 import { hasPrimaImport } from './backup.js';
+import { isInstallata, isIOS, puoInstallare } from './pwa.js';
 
 const TABS = [['oggi', 'check', 'Oggi'], ['stat', 'chart', 'Statistiche'], ['hab', 'settings', 'Abitudini']];
 
@@ -269,6 +270,19 @@ function umoreCard(now) {
 }
 
 // ---------- Abitudini ----------
+
+// Riquadro "App sul telefono": pulsante di installazione o istruzioni, secondo il browser.
+function cardInstalla() {
+  let body;
+  if (isInstallata()) body = `<p class="muted" style="margin:6px 0 0">L’app è installata: funziona anche senza connessione.</p>`;
+  else if (puoInstallare()) body = `<p class="muted" style="margin:6px 0 0">Aggiungila alla schermata Home: si apre come un’app e funziona anche senza connessione.</p>
+      <button class="btn block" data-act="install">Installa l’app</button>`;
+  else if (isIOS()) body = `<p class="muted" style="margin:6px 0 0">Su iPhone e iPad: apri il sito in Safari, tocca il pulsante <strong>Condividi</strong>
+      (il quadrato con la freccia in su) e poi <strong>Aggiungi alla schermata Home</strong>.</p>`;
+  else body = `<p class="muted" style="margin:6px 0 0">Dal menu del browser scegli “Installa app” o “Aggiungi alla schermata Home”.
+      Funziona anche senza connessione.</p>`;
+  return `<h2>App sul telefono</h2><div class="card">${body}</div>`;
+}
 function viewHabits() {
   let html = `<h1>Abitudini</h1><button class="btn block" data-act="new" style="margin:10px 0 4px">${icon('plus', 20)}Nuova abitudine</button>`;
   if (!data.habits.length) html += `<p class="muted" style="text-align:center">Qui compariranno le abitudini che crei.</p>`;
@@ -277,6 +291,7 @@ function viewHabits() {
       <div class="muted">${h.type === 'check' ? 'Sì / No' : 'Obiettivo ' + fmt(h.target) + ' ' + esc(h.unit)} · ${daysLabel(h)}</div></div>
       <button class="btn sec" data-act="edit" data-id="${h.id}" aria-label="Modifica ${esc(h.name)}">Modifica</button></div>`;
   }
+  html += cardInstalla();
   html += `<h2>Dati</h2><div class="card">
     <div class="muted">I dati restano solo su questo dispositivo. Fai un backup ogni tanto.</div>
     <div class="muted" style="margin-top:4px">Ultimo backup: ${data.lastBackup ? esc(data.lastBackup) : 'mai'}</div>

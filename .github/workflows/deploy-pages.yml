@@ -35,6 +35,9 @@ jobs:
           # stessa e i file di testo .md: così i file nuovi non vanno aggiunti a mano qui
           mkdir -p dist
           tar --exclude='./.*' --exclude='./dist' --exclude='*.md' -cf - . | tar -xf - -C dist
+          # versione del service worker = codice del commit: ogni pubblicazione crea una cache nuova
+          sed -i "s/const VERSION = 'dev';/const VERSION = '${GITHUB_SHA::7}';/" dist/sw.js
+          grep -q "const VERSION = '${GITHUB_SHA::7}';" dist/sw.js
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

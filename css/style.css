@@ -269,3 +269,10 @@ i.none { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
 i.fut { visibility: hidden; }
 .cal i.today { outline: 2px solid var(--text); outline-offset: 1px; }
 .legend { align-items: center; }
+
+/* ---------- Avviso temporaneo in basso (es. nuova versione) ---------- */
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(72px + env(safe-area-inset-bottom)); z-index: 8;
+  width: calc(100% - 24px); max-width: 616px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  background: var(--card); border: 1px solid var(--accent); border-radius: 14px; padding: 10px 10px 10px 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .25); font-size: 14px; }
+.toast span { flex: 1; min-width: 12em; }

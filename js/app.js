@@ -10,6 +10,7 @@ import { ui } from './stato.js';
 import { render, annuncia, UMORI } from './viste.js';
 import { openForm, renderForm, syncForm, closeForm } from './modulo.js';
 import { exportBackup, askImport, setupImport, annullaImport } from './backup.js';
+import { setupPWA, installa } from './pwa.js';
 
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
@@ -88,6 +89,7 @@ document.addEventListener('click', e => {
     case 'export': exportBackup(); break;
     case 'import': askImport(); break;
     case 'undoImport': annullaImport(); break;
+    case 'install': installa(); break;
   }
 });
 
@@ -133,5 +135,5 @@ document.addEventListener('visibilitychange', () => {
 
 setupImport();
 render();
-// il service worker (sw.js) permette di usare l'app senza connessione
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+// service worker (uso senza connessione), aggiornamenti e installazione: vedi pwa.js
+setupPWA(() => { if (ui.tab === 'hab' && !ui.form) render(); });

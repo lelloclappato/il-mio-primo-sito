@@ -10,6 +10,12 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<!-- per iPhone/iPad quando l'app è aggiunta alla schermata Home -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Abitudini">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Traccia le tue abitudini di ogni giorno: serie, statistiche, umore. I dati restano sul tuo telefono.">
 <!-- "preload": il browser scarica subito i font, senza aspettare di leggere il CSS -->
 <link rel="preload" href="fonts/plus-jakarta-sans-latin-variabile.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/fraunces-latin-600.woff2" as="font" type="font/woff2" crossorigin>
@@ -19,6 +25,8 @@
 <main id="app"></main>
 <nav class="tabs" aria-label="Sezioni"><div class="in" id="tabs"></div></nav>
 <div id="modal"></div>
+<!-- avvisi temporanei (es. "È pronta una nuova versione") -->
+<div id="toast"></div>
 <!-- invisibile: i lettori di schermo leggono ad alta voce quello che ci scrive annuncia() -->
 <div id="annuncio" class="sr-only" aria-live="polite"></div>
 <input type="file" id="importFile" accept="application/json" hidden>
